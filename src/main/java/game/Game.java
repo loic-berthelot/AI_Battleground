@@ -1,8 +1,6 @@
 package game;
 
 import controller.InputBuffer;
-import controller.InputManager;
-import it.unimi.dsi.fastutil.ints.IntHash;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
@@ -19,7 +17,6 @@ public class Game {
     private Vector<Integer> scores;
     private int teamsNumber;
     private int teamSize;
-    private boolean mustReset;
     private boolean turboMode;
     private boolean paused;
     private InputBuffer turboInputBuffer;
@@ -28,9 +25,10 @@ public class Game {
     private double speed;
     private int frameCount;
     private int roundCount;
-    private int roundsLimit;
+    private int frameLimit;
+    private int recordingDelta;
+    private int decisionDelta;
     ArrayList<NNStrategy> nnStrategies;
-    private GameHistory gameHistory;
     static {
         teamColors = new Vector<>();
         teamColors.add(Color.BLUE);
@@ -47,9 +45,11 @@ public class Game {
         teamsNumber = 2;
         teamSize = 2;
         speed = 0.005;
+        decisionDelta = 5;
+        recordingDelta = 30;
         Agent.setAgentRadius(0.08);
         Agent.setSpeed(speed);
-        roundsLimit = -1;
+        frameLimit = 10000;
         nnStrategies = new ArrayList<>();
         init(true);
         scores = new Vector<>();
@@ -60,6 +60,101 @@ public class Game {
         turboInputBuffer = new InputBuffer("Turbo");
         pausedInputBuffer = new InputBuffer("Pause");
         restartInputBuffer = new InputBuffer("Restart");
+    }
+    public void init(boolean firstInit){
+        roundCount++;
+        frameCount = 0;
+        if (firstInit) agents = new Vector<>();
+        Random random = new Random();
+        double angleShift = random.nextDouble(2*Math.PI);
+        int agentIndex = 0;
+        for (int i = 0; i < teamsNumber; i++) {
+            for (int j = 0; j < teamSize; j++) {
+                double angle = 2*Math.PI*i/teamsNumber+angleShift;
+                double dist = 0.4+0.4*(j/(double)teamSize);
+                if (firstInit) {
+                    Agent a = new Agent(dist * Math.cos(angle), dist * Math.sin(angle), i);
+                    agents.add(a);
+                    if ( i ==0) {
+                        a.setStrategy(new RuleBasedStrategy(this, 1));
+                    } else {
+                        if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
+                        else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
+                        //a.setStrategy(new NNStrategy(this, a));
+                    }
+                    buildKillingPoints();
+                } else {
+                    Agent a = agents.get(agentIndex);
+                    a.init(dist * Math.cos(angle), dist * Math.sin(angle));
+                    //if (roundCount%6 == 0 && i == 0)  a.setStrategy(new RandomStrategy(this, 0.2));
+                    //else if ( i == 0)  a.setStrategy(new RuleBasedStrategy(this));
+                }
+                agentIndex++;
+            }
+        }
+        for (Agent a : agents) {
+            a.discardStates();
+            a.recordState();
+        }
+    }
+    public void evolve() {
+        if (frameCount%recordingDelta==0) {
+            for (Agent a : agents) {
+                a.discardStates();
+                a.recordState();
+            };
+        }
+        for (Agent a : agents) {
+            if(a.getStrategy().isHuman()) a.decide();
+            else if (frameCount%decisionDelta==0) a.decide();
+        }
+        if (frameCount%500==0){
+            Agent agent;
+            Strategy strat;
+            for (int i = 0; i < agents.size(); i++) {
+                agent = agents.get(i);
+                strat = agent.getStrategy();
+                if (strat.getIntermediateLearn()) {
+                    strat.learn(0.2*strat.getPunishmentIntensity());
+                }
+            }
+        }
+        for (int i = 0; i < agents.size(); i++) {
+            agents.get(i).evolve(this);
+        }
+        for (int i = 0; i < killingPoints.size(); i++) {
+            killingPoints.get(i).evolve(this);
+        }
+        if (frameLimit >= 0 && frameCount>= frameLimit){
+            for (int i = 0; i < agents.size(); i++) {
+                agents.get(i).getStrategy().learn( -10);
+            }
+            init(false);
+        }
+        checkEndRound();
+        frameCount++;
+    }
+    public void checkEndRound() {
+        int[] scoreIncrease = new int[teamsNumber];
+        for (int i = 0; i < agents.size(); i++) {
+            scoreIncrease[agents.get(i).getTeam()] = agents.get(i).getKillCount();
+        }
+        boolean mustReset = false;
+        for (int i = 0; i < teamsNumber; i++) {
+            if (scoreIncrease[i] > 0) {
+                mustReset = true;
+                scores.set(i, scores.get(i)+scoreIncrease[i]);
+            }
+        }
+        if (mustReset) {
+            double reward;
+            for (int i = 0; i < agents.size(); i++) {
+                Strategy strat = agents.get(i).getStrategy();
+                reward = scoreIncrease[agents.get(i).getTeam()] > 0 ? strat.getRewardIntensity() : strat.getPunishmentIntensity();
+                strat.learn(reward);
+            }
+            init(false);
+        }
     }
     private void buildKillingPoints(){
         killingPoints = new Vector<KillingPoint>();
@@ -72,137 +167,6 @@ public class Game {
                 if (agent1.getTeam() == agent2.getTeam()) killingPoints.add(new KillingPoint(agent1, agent2));
             }
         }
-    }
-    public void init(boolean firstInit){
-        roundCount++;
-        frameCount = 0;
-        if (firstInit) agents = new Vector<>();
-        Random random = new Random();
-        double angleShift = random.nextDouble(2*Math.PI);
-        double randomTeam = 0;
-        int agentIndex = 0;
-        for (int i = 0; i < teamsNumber; i++) {
-            for (int j = 0; j < teamSize; j++) {
-                double angle = 2*Math.PI*i/teamsNumber+angleShift;
-                double dist = 0.4+0.4*(j/(double)teamSize);
-                if (firstInit) {
-                    Agent a = new Agent(dist * Math.cos(angle), dist * Math.sin(angle), i);
-                    agents.add(a);
-                    if ( i == randomTeam) {
-                        a.setStrategy(new RandomStrategy(this, 0.2));
-                    } else {
-                        NNStrategy strat = new NNStrategy(this);
-                        a.setStrategy(strat);
-                        nnStrategies.add(strat);
-                    }
-                } else {
-                    Agent a = agents.get(agentIndex);
-                    a.setPos(dist * Math.cos(angle), dist * Math.sin(angle));
-                    if (roundCount == 10 && i == 0) a.setStrategy(new NNStrategy(this));
-                }
-                agentIndex++;
-            }
-        }
-        gameHistory = new GameHistory(this);
-        buildKillingPoints();
-        mustReset = false;
-        addState();
-    }
-    public void addState(){
-        int agentsSize = agents.size();
-        int kpSize = killingPoints.size();
-        double[] agentsPosX = new double[agentsSize];
-        double[] agentsPosY = new double[agentsSize];
-        double[] agentsTeams = new double[agentsSize];
-        double[] kpPosX = new double[kpSize];
-        double[] kpPosY = new double[kpSize];
-        double[] kpTeams = new double[kpSize];
-        for (int i = 0; i < agentsSize; i++) {
-            Agent agent = agents.get(i);
-            agentsPosX[i] = agent.getPosX();
-            agentsPosY[i] = agent.getPosY();
-            agentsTeams[i] = agent.getTeam();
-        }
-        for (int i = 0; i < kpSize; i++) {
-            KillingPoint kp = killingPoints.get(i);
-            kpPosX[i] = kp.getPosX();
-            kpPosY[i] = kp.getPosY();
-            kpTeams[i] = kp.getTeam();
-        }
-        GameState state = new GameState(agentsSize, agentsPosX, agentsPosY, agentsTeams);
-        state.setKillingPointsCoordinates(kpSize, kpPosX, kpPosY, kpTeams);
-        gameHistory.addState(state);
-    }
-    private double distance(double x1, double y1, double x2, double y2) {
-        return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
-    }
-    private double inGameReward(Agent agent) {
-        double reward, rewardIntensity, punishmentIntensity, dist;
-        KillingPoint killingPoint;
-        reward = 0;
-        Strategy strat = agent.getStrategy();
-        rewardIntensity = strat.getRewardIntensity();
-        punishmentIntensity = strat.getPunishmentIntensity();
-        for (int i = 0; i < killingPoints.size(); i++){
-            killingPoint = killingPoints.get(i);
-            if (killingPoint.getTeam() == agent.getTeam()) {
-                for (int j = 0; j < agents.size(); j++) {
-                    dist = Math.max(distance(killingPoint.getPosX(),killingPoint.getPosY(),agents.get(j).getPosX(),agents.get(j).getPosY())-Agent.getAgentRadius(), 0.001);
-                    reward += rewardIntensity/dist/dist;
-                }
-            } else {
-                dist = Math.max(distance(killingPoint.getPosX(),killingPoint.getPosY(),agent.getPosX(),agent.getPosY())-Agent.getAgentRadius(), 0.001);
-                reward += 0*punishmentIntensity/dist/dist;
-            }
-        }
-        return reward;
-    }
-    public void evolve() {
-        if (frameCount%3==0) {
-            addState();
-        }
-        if (frameCount%((int)(2+20*nnStrategies.get(0).getEpsilon()))==0) {
-            //agents.get(0).decide();
-            for (int i = 0; i < agents.size(); i++) {
-                agents.get(i).decide();
-            }
-        }
-        if (frameCount%200==0 && roundCount <= 20){
-            Agent agent;
-            Strategy strat;
-            for (int i = 0; i < agents.size(); i++) {
-                agent = agents.get(i);
-                strat = agent.getStrategy();
-                if (strat.getIntermediateLearn()) {
-                    strat.learn(gameHistory, 1*inGameReward(agent), i);
-                }
-            }
-        }
-        for (int i = 0; i < agents.size(); i++) {
-            agents.get(i).evolve(this);
-        }
-        for (int i = 0; i < killingPoints.size(); i++) {
-            killingPoints.get(i).evolve(this);
-        }
-        if (roundsLimit >= 0 && frameCount>=roundsLimit){
-            for (int i = 0; i < agents.size(); i++) {
-                agents.get(i).getStrategy().learn(gameHistory, -10, i);
-            }
-            init(false);
-        }
-        frameCount++;
-    }
-    public void nextRound(int indexWinner) {
-        incrementScore(indexWinner);
-        if (indexWinner >= 0) {
-            double reward;
-            for (int i = 0; i < agents.size(); i++) {
-                Strategy strat = agents.get(i).getStrategy();
-                reward = agents.get(i).getTeam() == indexWinner ? strat.getRewardIntensity() : strat.getPunishmentIntensity();
-                strat.learn(gameHistory, (1+50000.0/frameCount)*reward, i);
-            }
-        }
-        init(false);
     }
     public int getAgentsNumber(){
         return teamsNumber*teamSize;
@@ -243,12 +207,6 @@ public class Game {
     public int getScore(int i){
         return scores.get(i);
     }
-    public void incrementScore(int i){
-        scores.set(i, scores.get(i)+1);
-    }
-    public void setMustReset(boolean mustReset) {
-        this.mustReset = mustReset;
-    }
     public boolean getTurboMode() {
         return turboMode;
     }
@@ -258,14 +216,10 @@ public class Game {
     public double getSpeed(){
         return speed;
     }
-    public double[] calculateLastFeatures(Agent agent) {
-        int agentIndex = 0;
-        for (int i = 0; i < agents.size(); i++) {
-            if (agents.get(i) == agent) {
-                agentIndex = i;
-                break;
-            }
-        }
-        return gameHistory.calculateFeatures(gameHistory.getSize()-1, gameHistory.getSize()-1, agentIndex);
+    public int getFrameCount(){
+        return frameCount;
+    }
+    public int getRoundCount(){
+        return roundCount;
     }
 }

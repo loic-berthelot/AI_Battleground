@@ -8,27 +8,28 @@ import java.util.Vector;
 public class KillingPoint extends Particle {
     Agent agent1;
     Agent agent2;
-    public void updatePosition(){
-        posX = 0.5*(agent1.getPosX()+agent2.getPosX());
-        posY = 0.5*(agent1.getPosY()+agent2.getPosY());
-    }
     public KillingPoint(Agent agent1, Agent agent2) {
-        super(0,0,0.01);
+        super(0.01);
         this.agent1 = agent1;
         this.agent2 = agent2;
-        updatePosition();
-        team = agent1.getTeam();
+        super.setTeam(agent1.getTeam());
+    }
+    public void kill(Agent agent) {
+        agent.die();
+        agent1.incrementKillCount();
+        agent2.incrementKillCount();
     }
     public void evolve(Game game){
-        updatePosition();
         Vector<Agent> agents = game.getAgents();
         Agent agent;
+        double posX = getPosX();
+        double posY = getPosY();
         for (int i = 0; i < agents.size(); i++) {
             agent = agents.get(i);
             double diffX = agent.getPosX() - posX;
             double diffY = agent.getPosY() - posY;
             if (team != agent.getTeam() && Math.sqrt(diffX*diffX+ diffY*diffY) < agent.getRadius()){
-                game.nextRound(team);
+                kill(agent);
             }
         }
     }
@@ -51,5 +52,11 @@ public class KillingPoint extends Particle {
     }
     public Agent getAgent2(){
         return agent1;
+    }
+    public double getPosX(){
+        return 0.5*(agent1.getPosX()+agent2.getPosX());
+    }
+    public double getPosY(){
+        return 0.5*(agent1.getPosY()+agent2.getPosY());
     }
 }

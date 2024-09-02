@@ -43,6 +43,10 @@ public class GameCanvas extends Canvas {
         for (int i = 0; i < killingPoints.size(); i++) {
             killingPoints.get(i).draw(graphicsContext, game);
         }
+        graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        graphicsContext.setFill(Color.BLACK);
+        graphicsContext.fillText("Round "+Integer.toString(game.getRoundCount()), 10, 20);
+        graphicsContext.fillText("Frame "+Integer.toString(game.getFrameCount()), 10, 40);
         graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 40));
         for (int i = 0; i < game.getTeamsNumber(); i++){
             graphicsContext.setFill(Game.getTeamColor(i));

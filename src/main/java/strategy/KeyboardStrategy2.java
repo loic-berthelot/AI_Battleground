@@ -20,4 +20,8 @@ public class KeyboardStrategy2 extends Strategy {
         else if (!moveUp && moveDown) agent.setOrderY(-1);
         else agent.setOrderY(0);
     }
+    @Override
+    public boolean isHuman() {
+        return true;
+    }
 }

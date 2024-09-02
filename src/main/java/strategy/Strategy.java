@@ -2,7 +2,10 @@ package strategy;
 
 import game.Agent;
 import game.Game;
-import game.GameHistory;
+import game.KillingPoint;
+
+import java.util.Random;
+import java.util.Vector;
 
 public abstract class Strategy {
     protected int orderX;
@@ -23,10 +26,73 @@ public abstract class Strategy {
     public double getPunishmentIntensity() {
         return 0;
     }
-    public void learn(GameHistory gameHistory, double reward, int agentIndex){
+    public void learn(double reward){
 
     }
     public boolean getIntermediateLearn(){
         return false;
+    }
+    public boolean isHuman() {
+        return false;
+    }
+    public void goToBestPosition(Agent agent){
+        double posX = agent.getPosX();
+        double posY = agent.getPosY();
+        double shift = 1;
+        agent.setOrderX(0);
+        agent.setOrderY(0);
+        double bestScore = simulateMove(agent, posX, posY, 0, 0);
+        double score;
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i != 0 || j != 0) {
+                    score = simulateMove(agent, posX, posY, i*shift, j*shift);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        agent.setOrderX(i);
+                        agent.setOrderY(j);
+                    }
+                }
+            }
+        }
+        agent.setPos(posX, posY);
+    }
+    public double simulateMove(Agent agent, double posX, double posY, double dx, double dy){
+        return 0;
+    }
+    private double distance(double x1, double y1, double x2, double y2) {
+        return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+    }
+    public double invertDistanceSumHeuristic(Agent agent, boolean cubeDist, double alliesCoefficient) {
+        double reward, dist;
+        KillingPoint killingPoint;
+        reward = 0;
+        Vector<KillingPoint> killingPoints = game.getKillingPoints();
+        Vector<Agent> agents = game.getAgents();
+        for (int i = 0; i < killingPoints.size(); i++){
+            killingPoint = killingPoints.get(i);
+            if (killingPoint.getTeam() == agent.getTeam()) {
+                for (int j = 0; j < agents.size(); j++) {
+                    dist = Math.max(distance(killingPoint.getPosX(),killingPoint.getPosY(),agents.get(j).getPosX(),agents.get(j).getPosY())-Agent.getAgentRadius(), 0.001);
+                    if (cubeDist) dist = dist*dist*dist;
+                    else dist = dist*dist;
+                    reward += 0.015*(agents.get(j).getTeam() == killingPoint.getTeam() ? alliesCoefficient : 1)/dist;
+                }
+            } else {
+                dist = Math.max(distance(killingPoint.getPosX(),killingPoint.getPosY(),agent.getPosX(),agent.getPosY())-Agent.getAgentRadius(), 0.001);
+                if (cubeDist) dist = dist*dist*dist;
+                else dist = dist*dist;
+                reward += -0.01/dist;
+            }
+        }
+        Random random = new Random();
+        reward += 0.00001*random.nextDouble(1);
+        return reward;
+    }
+    public void recordState(){
+
+    }
+    public void discardStates(){
+
     }
 }

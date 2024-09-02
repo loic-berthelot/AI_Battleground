@@ -1,6 +1,5 @@
 package strategy;
 
-import game.GameHistory;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
@@ -25,11 +24,12 @@ public class NNdl4j {
         this.numInputs = numInputs;
         this.numOutputs = numOutputs;
         rng = new Random(seed);
-        int nHidden = 8;
+        int nHidden = 16;
         net = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .weightInit(WeightInit.XAVIER)
                 .updater(new Adam(learningRate))
+                .dropOut(0.2)
                 .list()
                 .layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(nHidden)
                         .activation(Activation.RELU)
@@ -37,7 +37,10 @@ public class NNdl4j {
                 .layer(1, new DenseLayer.Builder().nIn(nHidden).nOut(nHidden)
                         .activation(Activation.RELU)
                         .build())
-                .layer(2, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
+                .layer(2, new DenseLayer.Builder().nIn(nHidden).nOut(nHidden)
+                        .activation(Activation.RELU)
+                        .build())
+                .layer(3, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
                         .activation(Activation.IDENTITY)
                         .nIn(nHidden).nOut(numOutputs).build())
                 .build()
