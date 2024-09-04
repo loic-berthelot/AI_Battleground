@@ -12,8 +12,8 @@ public class Agent extends Particle {
     static private double sqrtHalf = Math.sqrt(0.5);
     static private double speed;
     static private double agentRadius;
-    private double posX;
-    private double posY;
+    private Position position;
+    private Position graphicalPosition;
     Strategy strategy;
     private double orderX;
     private double orderY;
@@ -21,14 +21,14 @@ public class Agent extends Particle {
     private int killCount;
     static int globalId = 0;
     private int id;
-    public Agent(double posX, double posY, int team) {
+    public Agent(Position position, int team) {
         super(agentRadius);
         this.team = team;
         orderX = 0;
         orderY = 0;
         strategy = new NullStrategy();
         id = globalId++;
-        init(posX, posY);
+        init(position);
     }
     public void init() {
         alive = true;
@@ -36,9 +36,10 @@ public class Agent extends Particle {
         orderX = 0;
         orderY = 0;
     }
-    public void init(double posX, double posY){
+    public void init(Position position) {
         init();
-        setPos(posX, posY);
+        setPos(position);
+        updateGraphicalPosition();
     }
     public void setStrategy(Strategy strategy) {
         this.strategy = strategy;
@@ -49,19 +50,22 @@ public class Agent extends Particle {
     public void decide() {
         strategy.decide(this);
     }
+    public void updateGraphicalPosition() {
+        graphicalPosition = new Position(position.getX(), position.getY());
+    }
     public void move(double dx, double dy) {
         if (dx == 0 || dy == 0) {
-            posX += speed*dx;
-            posY += speed*dy;
+            position.addX(speed*dx);
+            position.addY(speed*dy);
         } else {
-            posX += speed*dx*sqrtHalf;
-            posY += speed*dy*sqrtHalf;
+            position.addX(speed*dx*sqrtHalf);
+            position.addY(speed*dy*sqrtHalf);
         }
-        double dist = Math.sqrt(posX*posX+posY*posY);
+        double dist = position.distanceToCenter();
         if (dist > 1-radius) {
-            posX *= (1-radius)/dist;
-            posY *= (1-radius)/dist;
+            position.multiply((1-radius)/dist);
         }
+        updateGraphicalPosition();
     }
     public void evolve(Game game){
         move(orderX, orderY);
@@ -81,15 +85,20 @@ public class Agent extends Particle {
     public void setOrderY(double orderY) {
         this.orderY = orderY;
     }
+    public Position getPosition(){
+        return position;
+    }
+    public Position getGraphicalPosition(){
+        return graphicalPosition;
+    }
     public double getPosX() {
-        return posX;
+        return position.getX();
     }
     public double getPosY() {
-        return posY;
+        return position.getY();
     }
-    public void setPos(double posX, double posY) {
-        this.posX = posX;
-        this.posY = posY;
+    public void setPos(Position position) {
+        this.position = position;
     }
     public void die() {
         alive = false;
@@ -113,10 +122,10 @@ public class Agent extends Particle {
             int arenaRadius = game.getArenaRadius();
             graphicsContext.setFill(Color.WHITE);
             double size = 0.7*radius * arenaRadius;
-            graphicsContext.fillOval(game.getCenterArenaX() + getPosX()* arenaRadius - 0.5 * size , game.getCenterArenaY() - getPosY() * arenaRadius - 0.5 * size , size, size);
+            graphicsContext.fillOval(game.getCenterArenaX() + graphicalPosition.getX() * arenaRadius - 0.5 * size , game.getCenterArenaY() - graphicalPosition.getY() * arenaRadius - 0.5 * size , size, size);
             graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 12));
             graphicsContext.setFill(Color.BLACK);
-            graphicsContext.fillText(String.valueOf(id), game.getCenterArenaX() + getPosX()* arenaRadius, game.getCenterArenaY() - getPosY() * arenaRadius);
+            graphicsContext.fillText(String.valueOf(id), game.getCenterArenaX() + graphicalPosition.getX()* arenaRadius, game.getCenterArenaY() - graphicalPosition.getY() * arenaRadius);
         }
     }
     public void recordState(){

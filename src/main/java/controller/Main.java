@@ -16,12 +16,14 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         game = new Game();
-        //controllerThread = new Thread(new GameController(game));
-        //controllerThread.start();
-
+        controllerThread = new Thread(new GameController(game));
+        controllerThread.start();
         view = new View(game, stage);
         timer = new GameTimer(game, view);
         timer.start();
+        stage.setOnCloseRequest(event -> {
+            controllerThread.stop();
+        });
     }
 
     public static void main(String[] args) {

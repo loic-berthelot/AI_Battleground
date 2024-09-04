@@ -48,8 +48,8 @@ public class NNStrategy extends Strategy {
         return invertDistanceSumHeuristic(controlledAgent, false, 0);
     }
     @Override
-    public double simulateMove(Agent agent, double posX, double posY, double dx, double dy) {
-        agent.setPos(posX, posY);
+    public double simulateMove(Agent agent, Position position, double dx, double dy) {
+        agent.setPos(position);
         agent.move(dx,dy);
         return calculateScore();
     }

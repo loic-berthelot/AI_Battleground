@@ -17,6 +17,7 @@ public class GameTimer extends AnimationTimer {
     @Override
     public void handle(long now) {
         view.display();
+        /*
         game.executeCommands();
         if (! game.getPaused()) {
             if (game.getTurboMode()) {
@@ -27,6 +28,6 @@ public class GameTimer extends AnimationTimer {
                 frameCount++;
                 game.evolve();
             }
-        }
+        }*/
     }
 }

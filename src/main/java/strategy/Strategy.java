@@ -3,6 +3,7 @@ package strategy;
 import game.Agent;
 import game.Game;
 import game.KillingPoint;
+import game.Position;
 
 import java.util.Random;
 import java.util.Vector;
@@ -36,17 +37,16 @@ public abstract class Strategy {
         return false;
     }
     public void goToBestPosition(Agent agent){
-        double posX = agent.getPosX();
-        double posY = agent.getPosY();
+        Position position = agent.getPosition();
         double shift = 1;
         agent.setOrderX(0);
         agent.setOrderY(0);
-        double bestScore = simulateMove(agent, posX, posY, 0, 0);
+        double bestScore = simulateMove(agent, position, 0, 0);
         double score;
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 if (i != 0 || j != 0) {
-                    score = simulateMove(agent, posX, posY, i*shift, j*shift);
+                    score = simulateMove(agent, new Position(position), i*shift, j*shift);
                     if (score > bestScore) {
                         bestScore = score;
                         agent.setOrderX(i);
@@ -55,9 +55,9 @@ public abstract class Strategy {
                 }
             }
         }
-        agent.setPos(posX, posY);
+        agent.setPos(position);
     }
-    public double simulateMove(Agent agent, double posX, double posY, double dx, double dy){
+    public double simulateMove(Agent agent, Position position, double dx, double dy){
         return 0;
     }
     private double distance(double x1, double y1, double x2, double y2) {

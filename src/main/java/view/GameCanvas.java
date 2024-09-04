@@ -37,11 +37,11 @@ public class GameCanvas extends Canvas {
         double radius = game.getArenaRadius();
         graphicsContext.setFill(new Color(0,0,0,1));
         graphicsContext.fillOval(10,10, 2*radius,2*radius);
-        for (int i = 0; i < agents.size(); i++) {
-            agents.get(i).draw(graphicsContext, game);
-        }
         for (int i = 0; i < killingPoints.size(); i++) {
             killingPoints.get(i).draw(graphicsContext, game);
+        }
+        for (int i = 0; i < agents.size(); i++) {
+            agents.get(i).draw(graphicsContext, game);
         }
         graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 20));
         graphicsContext.setFill(Color.BLACK);

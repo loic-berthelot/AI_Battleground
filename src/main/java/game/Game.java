@@ -73,7 +73,7 @@ public class Game {
                 double angle = 2*Math.PI*i/teamsNumber+angleShift;
                 double dist = 0.4+0.4*(j/(double)teamSize);
                 if (firstInit) {
-                    Agent a = new Agent(dist * Math.cos(angle), dist * Math.sin(angle), i);
+                    Agent a = new Agent(new Position(dist * Math.cos(angle), dist * Math.sin(angle)), i);
                     agents.add(a);
                     if ( i ==0) {
                         a.setStrategy(new RuleBasedStrategy(this, 1));
@@ -85,7 +85,7 @@ public class Game {
                     buildKillingPoints();
                 } else {
                     Agent a = agents.get(agentIndex);
-                    a.init(dist * Math.cos(angle), dist * Math.sin(angle));
+                    a.init(new Position(dist * Math.cos(angle), dist * Math.sin(angle)));
                     //if (roundCount%6 == 0 && i == 0)  a.setStrategy(new RandomStrategy(this, 0.2));
                     //else if ( i == 0)  a.setStrategy(new RuleBasedStrategy(this));
                 }

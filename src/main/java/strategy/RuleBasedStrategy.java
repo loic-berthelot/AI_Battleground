@@ -2,6 +2,7 @@ package strategy;
 
 import game.Agent;
 import game.Game;
+import game.Position;
 
 import java.util.Random;
 
@@ -24,8 +25,8 @@ public class RuleBasedStrategy extends Strategy{
         }
     }
     @Override
-    public double simulateMove(Agent agent, double posX, double posY, double dx, double dy) {
-        agent.setPos(posX, posY);
+    public double simulateMove(Agent agent, Position position, double dx, double dy) {
+        agent.setPos(position);
         agent.move(dx,dy);
         return heuristicResult(agent);
     }

@@ -40,10 +40,10 @@ public class KillingPoint extends Particle {
         int centerY = game.getCenterArenaY();
         graphicsContext.setStroke(Color.WHITE);
         graphicsContext.setLineWidth(1);
-        double posX1 = centerX+agent1.getPosX()*arenaRadius;
-        double posY1 = centerY-agent1.getPosY()*arenaRadius;
-        double posX2 = centerX+agent2.getPosX()*arenaRadius;
-        double posY2 = centerY-agent2.getPosY()*arenaRadius;
+        double posX1 = centerX+agent1.getGraphicalPosition().getX()*arenaRadius;
+        double posY1 = centerY-agent1.getGraphicalPosition().getY()*arenaRadius;
+        double posX2 = centerX+agent2.getGraphicalPosition().getX()*arenaRadius;
+        double posY2 = centerY-agent2.getGraphicalPosition().getY()*arenaRadius;
         graphicsContext.strokeLine(posX1, posY1, posX2, posY2);
         super.draw(graphicsContext, game);
     }
