@@ -8,6 +8,9 @@ import javafx.scene.text.FontWeight;
 import strategy.NullStrategy;
 import strategy.Strategy;
 
+import java.util.ArrayList;
+import java.util.Vector;
+
 public class Agent extends Particle {
     static private double sqrtHalf = Math.sqrt(0.5);
     static private double speed;
@@ -21,11 +24,10 @@ public class Agent extends Particle {
     private int killCount;
     static int globalId = 0;
     private int id;
+    private ArrayList<Position> positionsHistory;
     public Agent(Position position, int team) {
         super(agentRadius);
         this.team = team;
-        orderX = 0;
-        orderY = 0;
         strategy = new NullStrategy();
         id = globalId++;
         init(position);
@@ -35,6 +37,7 @@ public class Agent extends Particle {
         killCount = 0;
         orderX = 0;
         orderY = 0;
+        positionsHistory = new ArrayList<>();
     }
     public void init(Position position) {
         init();
@@ -66,6 +69,7 @@ public class Agent extends Particle {
             position.multiply((1-radius)/dist);
         }
         updateGraphicalPosition();
+        positionsHistory.add(new Position(position));
     }
     public void evolve(Game game){
         move(orderX, orderY);
@@ -133,5 +137,23 @@ public class Agent extends Particle {
     }
     public void discardStates(){
         strategy.discardStates();
+    }
+    public double getLastMovesX(int frames){
+        int size = positionsHistory.size();
+        if (frames > size) frames = size;
+        if (frames == 0) return 0;
+        return positionsHistory.get(size-1).getX()-positionsHistory.get(size-frames).getX();
+    }
+    public double getLastMovesY(int frames){
+        int size = positionsHistory.size();
+        if (frames > size) frames = size;
+        if (frames == 0) return 0;
+        return positionsHistory.get(size-1).getY()-positionsHistory.get(size-frames).getY();
+    }
+    public double getLastMoveX(){
+        return getLastMovesX(1);
+    }
+    public double getLastMoveY(){
+        return getLastMovesY(1);
     }
 }

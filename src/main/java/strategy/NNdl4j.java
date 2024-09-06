@@ -29,16 +29,16 @@ public class NNdl4j {
                 .seed(seed)
                 .weightInit(WeightInit.XAVIER)
                 .updater(new Adam(learningRate))
-                .dropOut(0.2)
+                .dropOut(0.3)
                 .list()
                 .layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(nHidden)
-                        .activation(Activation.RELU)
+                        .activation(Activation.SIGMOID)
                         .build())
                 .layer(1, new DenseLayer.Builder().nIn(nHidden).nOut(nHidden)
-                        .activation(Activation.RELU)
+                        .activation(Activation.SIGMOID)
                         .build())
                 .layer(2, new DenseLayer.Builder().nIn(nHidden).nOut(nHidden)
-                        .activation(Activation.RELU)
+                        .activation(Activation.SIGMOID)
                         .build())
                 .layer(3, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
                         .activation(Activation.IDENTITY)
@@ -50,16 +50,16 @@ public class NNdl4j {
     public void fit(double[] inputs, double[] outputs, int size, int nEpochs)
     {
         INDArray indinputs = Nd4j.create(inputs, new int[]{size, numInputs});
-        INDArray indoutputs = Nd4j.create(outputs, new int[]{size, 1});
+        INDArray indoutputs = Nd4j.create(outputs, new int[]{size, numOutputs});
         DataSet dataset = new DataSet(indinputs, indoutputs);
         for( int i=0; i<nEpochs; i++ ){
             net.fit(dataset);
         }
     }
-    public double predict(double[] features){
+    public double[] predict(double[] features){
         INDArray input = Nd4j.create(features, new int[]{1,numInputs});
         INDArray out = net.output(input);
-        return out.getDouble(0);
+        return out.toDoubleVector();
     }
     public void setLearningRate(double learningRate) {
         this.learningRate = learningRate;

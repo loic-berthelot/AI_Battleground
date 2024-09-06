@@ -4,6 +4,7 @@ import controller.InputManager;
 import game.Game;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
@@ -13,19 +14,19 @@ import javafx.stage.Stage;
 
 
 public class View {
-    private Game game;
-    private Stage stage;
-    private GameCanvas gameCanvas;
-    private Scene scene;
-    private Rectangle2D screenSize;
-    public View(Game game, Stage stage) {
+    final private Game game;
+    final private Stage stage;
+    final private GameCanvas gameCanvas;
+    final private Scene scene;
+    final private Rectangle2D screenSize;
+    public View(final Game game, final Stage stage) {
         this.game = game;
         this.stage = stage;
         Pane root = new Pane();
         stage.setMaximized(true);
         stage.setTitle("AI Battleground");
         screenSize = Screen.getPrimary().getVisualBounds();
-        scene = new Scene(root, screenSize.getWidth(), screenSize.getHeight());
+        scene = new Scene(root, screenSize.getWidth(), screenSize.getHeight(), true, SceneAntialiasing.BALANCED);
         gameCanvas = new GameCanvas((int) screenSize.getWidth(), (int) screenSize.getHeight(), game);
         root.getChildren().add(gameCanvas);
         stage.setScene(scene);

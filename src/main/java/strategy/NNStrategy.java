@@ -1,103 +1,35 @@
 package strategy;
-import game.*;
+
+import game.Agent;
+import game.Game;
+import game.KillingPoint;
 
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
 
-import game.Game;
-
-public class NNStrategy extends Strategy {
-    private NNdl4j nn;
-    private int numInputs;
-    private  int numOutputs;
-    private double epsilon;
-    private double epsilonMultiplier;
-    private double gamma;
-    private int maxHistoryDepth;
-    private double learningRate;
-    private double learningRateMultiplier;
-    private int nEpochs;
-    private double rewardIntensity;
-    private double punishmentIntensity;
-    private boolean intermediateLearn;
-    private ArrayList<double[]> states;
-    private Agent controlledAgent;
-    private int scoreMethod;
-    public NNStrategy(Game game, Agent controlledAgent){
+public abstract class NNStrategy extends Strategy {
+    protected NNdl4j nn;
+    protected int numInputs;
+    protected int numOutputs;
+    protected Agent controlledAgent;
+    protected double epsilon;
+    protected double epsilonMultiplier;
+    protected double gamma;
+    protected int maxHistoryDepth;
+    protected double learningRate;
+    protected double learningRateMultiplier;
+    protected int nEpochs;
+    protected double rewardIntensity;
+    protected double punishmentIntensity;
+    protected boolean intermediateLearn;
+    protected ArrayList<double[]> states;
+    public NNStrategy(Game game, Agent controlledAgent) {
         super(game);
         this.controlledAgent = controlledAgent;
-        numInputs = 2*(game.getAgentsNumber()+game.getTeamsNumber())+6;
-        numOutputs = 1;
-        epsilon = 0.8;
-        epsilonMultiplier = 0.95;
-        gamma = 0.7;
-        maxHistoryDepth = 10;
-        learningRate = 0.01;
-        learningRateMultiplier = 0.99;
-        nEpochs = 5;
-        rewardIntensity = 20;
-        punishmentIntensity = -1;
-        intermediateLearn = false;
-        states = new ArrayList<double[]>();
-        scoreMethod = 0;
-        nn = new NNdl4j(learningRate,0, numInputs, numOutputs);
     }
-    private double calculateScore(){
-        if (scoreMethod == 0) return nn.predict(calculateState());
-        return invertDistanceSumHeuristic(controlledAgent, false, 0);
-    }
-    @Override
-    public double simulateMove(Agent agent, Position position, double dx, double dy) {
-        agent.setPos(position);
-        agent.move(dx,dy);
-        return calculateScore();
-    }
-    public void decide(Agent agent){
-        Random random = new Random();
-        if (random.nextFloat() < epsilon) {
-            scoreMethod = 1;
-            goToBestPosition(agent);
-            /*
-            agent.setOrderX(random.nextInt(3)-1);
-            agent.setOrderY(random.nextInt(3)-1);
-            */
-        } else {
-            scoreMethod = 0;
-            goToBestPosition(agent);
-        }
-    }
-    @Override
-    public void learn(double reward){
-        int size = states.size();
-        int firstState = Math.max(size-maxHistoryDepth, 0);
-        int lastState = size-1;
-        double[] statesFeatures = calculateFeatures(firstState, lastState);
-        int featuresSize = lastState-firstState+1;
-        double[] rewards = new double[featuresSize];
-        for (int i = firstState+1; i <= size; i++) {
-            rewards[size-i] = reward;
-            reward *= gamma;
-        }
-        nn.fit(statesFeatures, rewards, featuresSize, nEpochs);
-        epsilon*=epsilonMultiplier;
-        learningRate *= learningRateMultiplier;
-        nn.setLearningRate(learningRate);
-    }
-    public double getEpsilon(){
-        return epsilon;
-    }
-    @Override
-    public double getRewardIntensity() {
-        return rewardIntensity;
-    }
-    @Override
-    public double getPunishmentIntensity() {
-        return punishmentIntensity;
-    }
-    @Override
-    public boolean getIntermediateLearn(){
-        return intermediateLearn;
+    public static double distance(double x1, double y1, double x2, double y2) {
+        return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
     }
     public double[] calculateState(){
         int agentsSize = game.getAgentsNumber();
@@ -145,13 +77,7 @@ public class NNStrategy extends Strategy {
         state[indexState+5] = 0.01*(game.getFrameCount()%200);
         return state;
     }
-    @Override
-    public void recordState(){
-        states.add(calculateState());
-    }
-    public static double distance(double x1, double y1, double x2, double y2) {
-        return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
-    }
+
     public double[] calculateFeatures(int firstState, int lastState){
         int indexFeatures = 0;
         double[] state;
@@ -164,6 +90,25 @@ public class NNStrategy extends Strategy {
             }
         }
         return features;
+    }
+    public double getEpsilon(){
+        return epsilon;
+    }
+    @Override
+    public double getRewardIntensity() {
+        return rewardIntensity;
+    }
+    @Override
+    public double getPunishmentIntensity() {
+        return punishmentIntensity;
+    }
+    @Override
+    public boolean getIntermediateLearn(){
+        return intermediateLearn;
+    }
+    @Override
+    public void recordState(){
+        states.add(calculateState());
     }
     @Override
     public void discardStates(){

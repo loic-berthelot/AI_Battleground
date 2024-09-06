@@ -13,22 +13,22 @@ import java.util.Vector;
 public class Game {
     private Vector<Agent> agents;
     private Vector<KillingPoint> killingPoints;
-    private static Vector<Color> teamColors;
-    private Vector<Integer> scores;
-    private int teamsNumber;
-    private int teamSize;
+    final private static Vector<Color> teamColors;
+    final private Vector<Integer> scores;
+    final private int teamsNumber;
+    final private int teamSize;
     private boolean turboMode;
     private boolean paused;
-    private InputBuffer turboInputBuffer;
-    private InputBuffer pausedInputBuffer;
-    private InputBuffer restartInputBuffer;
-    private double speed;
+    final private InputBuffer turboInputBuffer;
+    final private InputBuffer pausedInputBuffer;
+    final private InputBuffer restartInputBuffer;
+    final private double speed;
     private int frameCount;
     private int roundCount;
-    private int frameLimit;
-    private int recordingDelta;
-    private int decisionDelta;
-    ArrayList<NNStrategy> nnStrategies;
+    final private int frameLimit;
+    final private int recordingDelta;
+    final private int decisionDelta;
+    final private ArrayList<NNStrategy1output> nnStrategies;
     static {
         teamColors = new Vector<>();
         teamColors.add(Color.BLUE);
@@ -46,10 +46,10 @@ public class Game {
         teamSize = 2;
         speed = 0.005;
         decisionDelta = 5;
-        recordingDelta = 30;
+        recordingDelta = 11;
         Agent.setAgentRadius(0.08);
         Agent.setSpeed(speed);
-        frameLimit = 10000;
+        frameLimit = 2500;
         nnStrategies = new ArrayList<>();
         init(true);
         scores = new Vector<>();
@@ -76,11 +76,15 @@ public class Game {
                     Agent a = new Agent(new Position(dist * Math.cos(angle), dist * Math.sin(angle)), i);
                     agents.add(a);
                     if ( i ==0) {
-                        a.setStrategy(new RuleBasedStrategy(this, 1));
+                        //a.setStrategy(new RuleBasedStrategy(this, 1));
+                        //a.setStrategy(new NNStrategy1output(this, a));
+                        //a.setStrategy(new RandomStrategy(this, 0.2));
+                        a.setStrategy(new NNStrategy1output(this, a));
                     } else {
-                        if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
-                        else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                        //a.setStrategy(new NNStrategy(this, a));
+                        //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
+                        //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
+                        a.setStrategy(new NNStrategy2outputs(this, a));
+                        //a.setStrategy(new NNStrategy1output(this, a));
                     }
                     buildKillingPoints();
                 } else {
