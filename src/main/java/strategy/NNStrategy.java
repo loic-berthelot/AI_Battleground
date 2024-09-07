@@ -23,10 +23,11 @@ public abstract class NNStrategy extends Strategy {
     protected double rewardIntensity;
     protected double punishmentIntensity;
     protected boolean intermediateLearn;
-    protected ArrayList<double[]> states;
+    protected Vector<double[]> states;
     public NNStrategy(Game game, Agent controlledAgent) {
         super(game);
         this.controlledAgent = controlledAgent;
+        states = new Vector<double[]>();
     }
     public static double distance(double x1, double y1, double x2, double y2) {
         return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
@@ -82,7 +83,7 @@ public abstract class NNStrategy extends Strategy {
         int indexFeatures = 0;
         double[] state;
         double[] features = new double[(lastState-firstState+1)*numInputs];
-        for (int i = firstState; i<=lastState; i++) {
+        for (int i = firstState; i <= lastState; i++) {
             state = states.get(i);
             for (int j = 0; j < numInputs; j++) {
                 features[indexFeatures] = state[j];
@@ -108,10 +109,10 @@ public abstract class NNStrategy extends Strategy {
     }
     @Override
     public void recordState(){
-        states.add(calculateState());
+        states.insertElementAt(calculateState(), 0);
     }
     @Override
     public void discardStates(){
-        states = new ArrayList<double[]>();
+        states = new Vector<>();
     }
 }

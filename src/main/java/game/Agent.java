@@ -5,14 +5,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import strategy.NullStrategy;
 import strategy.Strategy;
 
 import java.util.ArrayList;
-import java.util.Vector;
 
 public class Agent extends Particle {
-    static private double sqrtHalf = Math.sqrt(0.5);
+    final static private double sqrtHalf = Math.sqrt(0.5);
     static private double speed;
     static private double agentRadius;
     private Position position;
@@ -22,14 +22,20 @@ public class Agent extends Particle {
     private double orderY;
     private boolean alive;
     private int killCount;
-    static int globalId = 0;
+    static int globalId = 1;
     private int id;
     private ArrayList<Position> positionsHistory;
+    private double orientation;
+    private double targetOrientation;
+    ArrayList<Eye> eyes;
     public Agent(Position position, int team) {
         super(agentRadius);
         this.team = team;
         strategy = new NullStrategy();
         id = globalId++;
+        eyes = new ArrayList<>();
+        eyes.add(new Eye(this, -0.6));
+        eyes.add(new Eye(this, 0.6));
         init(position);
     }
     public void init() {
@@ -70,6 +76,22 @@ public class Agent extends Particle {
         }
         updateGraphicalPosition();
         positionsHistory.add(new Position(position));
+        if (dx != 0 || dy != 0) {
+            targetOrientation = (Math.atan2(dy, dx)+2*Math.PI)%(2*Math.PI);
+        }
+    }
+    public void adjustOrientation(){
+        double diff = (targetOrientation - orientation+2*Math.PI)%(2*Math.PI);
+        final double rotationSpeed = 0.1;
+        if (Math.abs(diff) <= rotationSpeed) {
+            orientation = targetOrientation;
+        } else {
+            if(diff > Math.PI || diff < 0){
+                orientation -= rotationSpeed;
+            } else {
+                orientation += rotationSpeed;
+            }
+        }
     }
     public void evolve(Game game){
         move(orderX, orderY);
@@ -122,14 +144,20 @@ public class Agent extends Particle {
     @Override
     public void draw(GraphicsContext graphicsContext, Game game) {
         super.draw(graphicsContext, game);
+        int arenaRadius = game.getArenaRadius();/*
         if (strategy.isHuman()) {
-            int arenaRadius = game.getArenaRadius();
             graphicsContext.setFill(Color.WHITE);
-            double size = 0.7*radius * arenaRadius;
-            graphicsContext.fillOval(game.getCenterArenaX() + graphicalPosition.getX() * arenaRadius - 0.5 * size , game.getCenterArenaY() - graphicalPosition.getY() * arenaRadius - 0.5 * size , size, size);
-            graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 12));
-            graphicsContext.setFill(Color.BLACK);
-            graphicsContext.fillText(String.valueOf(id), game.getCenterArenaX() + graphicalPosition.getX()* arenaRadius, game.getCenterArenaY() - graphicalPosition.getY() * arenaRadius);
+            double size = 0.7 * radius * arenaRadius;
+            graphicsContext.fillOval(game.getCenterArenaX() + graphicalPosition.getX() * arenaRadius - 0.5 * size, game.getCenterArenaY() - graphicalPosition.getY() * arenaRadius - 0.5 * size, size, size);
+        }*/
+        graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 200*agentRadius));
+        graphicsContext.setFill(Color.BLACK);
+        Text text = new Text(String.valueOf(id));
+        double textWidth = text.getLayoutBounds().getWidth();
+        double textHeight = text.getLayoutBounds().getHeight();
+        graphicsContext.fillText(text.getText(), game.getCenterArenaX() + graphicalPosition.getX()* arenaRadius-textWidth/2, game.getCenterArenaY() - graphicalPosition.getY() * arenaRadius+textHeight/2);
+        for (int i = 0; i < eyes.size(); i++) {
+            eyes.get(i).draw(graphicsContext, game);
         }
     }
     public void recordState(){
@@ -155,5 +183,8 @@ public class Agent extends Particle {
     }
     public double getLastMoveY(){
         return getLastMovesY(1);
+    }
+    public double getOrientation(){
+        return orientation;
     }
 }

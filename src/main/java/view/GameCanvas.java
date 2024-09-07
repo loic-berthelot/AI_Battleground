@@ -30,6 +30,32 @@ public class GameCanvas extends Canvas {
         graphicsContext.setFill(new Color(0.7,0.7,0.7,1));
         graphicsContext.fillRect(0, 0, width, height);
     }
+    public double getScreenPosX(double posX) {
+        return game.getCenterArenaX()+posX*game.getArenaRadius();
+    }
+    public double getScreenPosY(double posY) {
+        return game.getCenterArenaY()+posY*game.getArenaRadius();
+    }
+    public void displayGrid(int lines, int columns){
+        graphicsContext.setStroke(new Color(1,1,1,0.2));
+        graphicsContext.setLineWidth(1);
+        double pos, extremity;
+        for (double i = 1; i <= lines; i++) {
+            pos = 2 * i / (double) (lines+1) - 1;
+            extremity = Math.sqrt(1-pos*pos);
+            pos = getScreenPosY(pos);
+            graphicsContext.strokeLine(getScreenPosX(extremity), pos, getScreenPosX(-extremity), pos);
+        }
+        for (double i = 1; i <= columns; i++) {
+            pos = 2 * i / (double) (columns+1) - 1;
+            extremity = Math.sqrt(1-pos*pos);
+            pos = getScreenPosX(pos);
+            graphicsContext.strokeLine(pos, getScreenPosY(extremity), pos, getScreenPosY(-extremity));
+        }
+        graphicsContext.setStroke(new Color(1,1,1,0.25));
+        graphicsContext.strokeLine(getScreenPosX(0), getScreenPosY(-1), getScreenPosX(0), getScreenPosY(1));
+        graphicsContext.strokeLine(getScreenPosX(-1), getScreenPosY(0), getScreenPosX(1), getScreenPosY(0));
+    }
     public void display() {
         Vector<Agent> agents = game.getAgents();
         Vector<KillingPoint> killingPoints = game.getKillingPoints();
@@ -37,6 +63,7 @@ public class GameCanvas extends Canvas {
         double radius = game.getArenaRadius();
         graphicsContext.setFill(new Color(0,0,0,1));
         graphicsContext.fillOval(10,10, 2*radius,2*radius);
+        displayGrid(7, 7);
         for (int i = 0; i < killingPoints.size(); i++) {
             killingPoints.get(i).draw(graphicsContext, game);
         }

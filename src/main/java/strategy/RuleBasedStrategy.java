@@ -13,8 +13,8 @@ public class RuleBasedStrategy extends Strategy{
     public RuleBasedStrategy(Game game, int heuristic) {
         super(game);
         this.heuristic = heuristic;
-        epsilon = 0.2;
-        epsilonCoefficient = 0.95;
+        epsilon = 0.8;
+        epsilonCoefficient = 0.98;
     }
     public double heuristicResult(Agent agent) {
         switch(heuristic) {

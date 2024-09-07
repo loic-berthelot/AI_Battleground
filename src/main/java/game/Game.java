@@ -46,7 +46,7 @@ public class Game {
         teamSize = 2;
         speed = 0.005;
         decisionDelta = 5;
-        recordingDelta = 11;
+        recordingDelta = 15;
         Agent.setAgentRadius(0.08);
         Agent.setSpeed(speed);
         frameLimit = 2500;
@@ -76,15 +76,14 @@ public class Game {
                     Agent a = new Agent(new Position(dist * Math.cos(angle), dist * Math.sin(angle)), i);
                     agents.add(a);
                     if ( i ==0) {
-                        //a.setStrategy(new RuleBasedStrategy(this, 1));
-                        //a.setStrategy(new NNStrategy1output(this, a));
-                        //a.setStrategy(new RandomStrategy(this, 0.2));
-                        a.setStrategy(new NNStrategy1output(this, a));
-                    } else {
                         //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
                         //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                        a.setStrategy(new NNStrategy2outputs(this, a));
                         //a.setStrategy(new NNStrategy1output(this, a));
+                        a.setStrategy(new NNStrategy9outputs(this, a));
+                    } else {
+                        a.setStrategy(new NNStrategy2outputs(this, a));
+                        //a.setStrategy(new RuleBasedStrategy(this, 1));
+                        //a.setStrategy(new RandomStrategy(this, 0.2));
                     }
                     buildKillingPoints();
                 } else {
@@ -125,6 +124,7 @@ public class Game {
         }
         for (int i = 0; i < agents.size(); i++) {
             agents.get(i).evolve(this);
+            agents.get(i).adjustOrientation();
         }
         for (int i = 0; i < killingPoints.size(); i++) {
             killingPoints.get(i).evolve(this);

@@ -16,15 +16,14 @@ public class NNStrategy1output extends NNStrategy {
         numOutputs = 1;
         epsilon = 0.8;
         epsilonMultiplier = 0.95;
-        gamma = 1;
+        gamma = 0.7;
         maxHistoryDepth = 10;
         learningRate = 0.001;
         learningRateMultiplier = 0.99;
         nEpochs = 50;
         rewardIntensity = 1;
-        punishmentIntensity = -0.3;
+        punishmentIntensity = -1;
         intermediateLearn = false;
-        states = new ArrayList<double[]>();
         scoreMethod = 0;
         Random random = new Random();
         nn = new NNdl4j(learningRate,random.nextInt(10000), numInputs, numOutputs);
@@ -56,13 +55,13 @@ public class NNStrategy1output extends NNStrategy {
     @Override
     public void learn(double reward){
         int size = states.size();
-        int firstState = Math.max(size-maxHistoryDepth, 0);
-        int lastState = size-1;
+        int firstState = 0;
+        int lastState = Math.min(size-1, maxHistoryDepth);
         double[] statesFeatures = calculateFeatures(firstState, lastState);
         int featuresSize = lastState-firstState+1;
         double[] rewards = new double[featuresSize];
-        for (int i = firstState+1; i <= size; i++) {
-            rewards[size-i] = reward;
+        for (int i = firstState; i < featuresSize; i++) {
+            rewards[i] = reward;
             reward *= gamma;
         }
         nn.fit(statesFeatures, rewards, featuresSize, nEpochs);

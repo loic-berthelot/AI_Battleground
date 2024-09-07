@@ -2,21 +2,19 @@ package strategy;
 
 import game.Agent;
 import game.Game;
-import game.KillingPoint;
-import game.Position;
 
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
 
-public class NNStrategy2outputs extends NNStrategy {
-    final private ArrayList<double[]> choices;
+public class NNStrategy9outputs extends NNStrategy {
+    final private ArrayList<Integer> choices;
     private int scoreMethod;
     private int recordingInterval;
-    public NNStrategy2outputs(Game game, Agent controlledAgent) {
+    public NNStrategy9outputs(Game game, Agent controlledAgent) {
         super(game, controlledAgent);
         numInputs = 2 * (game.getAgentsNumber() + game.getTeamsNumber()) + 6;
-        numOutputs = 2;
+        numOutputs = 9;
         epsilon = 0.8;
         epsilonMultiplier = 0.95;
         gamma = 0.7;
@@ -24,11 +22,11 @@ public class NNStrategy2outputs extends NNStrategy {
         learningRate = 0.001;
         learningRateMultiplier = 0.99;
         nEpochs = 50;
-        rewardIntensity = 1;
-        punishmentIntensity = -0.3;
+        rewardIntensity = 3;
+        punishmentIntensity = -1;
         recordingInterval = 15;
         intermediateLearn = false;
-        choices = new ArrayList<double[]>();
+        choices = new ArrayList<Integer>();
         scoreMethod = 0;
         Random random = new Random();
         nn = new NNdl4j(learningRate, random.nextInt(10000), numInputs, numOutputs);
@@ -42,13 +40,18 @@ public class NNStrategy2outputs extends NNStrategy {
         } else {
             scoreMethod = 0;
             double[] outputs = nn.predict(calculateState());
-            double dx = outputs[0];
-            double dy = outputs[1];
-            double threshold =  2*game.getSpeed();
-            if (dx > threshold) agent.setOrderX(1);
-            else if (dx < -threshold) agent.setOrderX(-1);
-            if (dy > threshold) agent.setOrderY(1);
-            else if (dy < -threshold) agent.setOrderY(-1);
+            int maxIndex = 4;
+            double maxScore = outputs[4];
+            double score;
+            for (int i = 0; i < 9; i++) {
+                score = outputs[i];
+                if (score > maxScore) {
+                    maxScore = score;
+                    maxIndex = i;
+                }
+            }
+            agent.setOrderX((maxIndex%3)-1);
+            agent.setOrderY((int) (maxIndex/3)-1);
         }
     }
 
@@ -56,15 +59,13 @@ public class NNStrategy2outputs extends NNStrategy {
     public void learn(double reward) {
         int size = states.size();
         int firstState = 0;
-        int lastState = Math.min(states.size() - 1, maxHistoryDepth);
+        int lastState = Math.min(size - 1, maxHistoryDepth);
         double[] statesFeatures = calculateFeatures(firstState, lastState);
-        int featuresSize = lastState+ 1;
-        double[] rewards = new double[featuresSize * 2];
+        int featuresSize = lastState + 1;
+        double[] rewards = new double[featuresSize*9];
         for (int i = firstState; i < featuresSize; i++) {
-            double[] choice = choices.get(i);
-            rewards[2 * i] = reward * choice[0];
-            rewards[2 * i + 1] = reward * choice[1];
-            reward *= gamma;
+            int choice = choices.get(i);
+            rewards[9*i+choice] = reward;
         }
         nn.fit(statesFeatures, rewards, featuresSize, nEpochs);
         epsilon *= epsilonMultiplier;
@@ -72,11 +73,17 @@ public class NNStrategy2outputs extends NNStrategy {
         nn.setLearningRate(learningRate);
     }
 
-    public double[] calculateChoice() {
-        double[] choice = new double[2];
-        choice[0] = controlledAgent.getLastMovesX(recordingInterval);
-        choice[1] = controlledAgent.getLastMovesY(recordingInterval);
-        return choice;
+    public int calculateChoice() {
+        double dx = controlledAgent.getLastMovesX(recordingInterval);
+        double dy = controlledAgent.getLastMovesY(recordingInterval);
+        int idx = 1;
+        int idy = 1;
+        double threshold = 2*game.getSpeed();
+        if (dx < -threshold) idx = 0;
+        else if (dx > threshold) idx = 2;
+        if (dy < -threshold) idy = 0;
+        else if (dy > threshold) idy = 2;
+        return 3*idy+idx;
     }
 
     @Override
