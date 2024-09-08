@@ -9,7 +9,7 @@ public class KillingPoint extends Particle {
     Agent agent1;
     Agent agent2;
     public KillingPoint(Agent agent1, Agent agent2) {
-        super(0.01);
+        super(0.008);
         this.agent1 = agent1;
         this.agent2 = agent2;
         super.setTeam(agent1.getTeam());
@@ -32,18 +32,16 @@ public class KillingPoint extends Particle {
                 kill(agent);
             }
         }
+        colorShift=0.55+0.45*Math.sin((double)(0.2*game.getFrameCount()));
     }
     @Override
     public void draw(GraphicsContext graphicsContext, Game game){
-        int arenaRadius = game.getArenaRadius();
-        int centerX = game.getCenterArenaX();
-        int centerY = game.getCenterArenaY();
-        graphicsContext.setStroke(Color.WHITE);
-        graphicsContext.setLineWidth(1);
-        double posX1 = centerX+agent1.getGraphicalPosition().getX()*arenaRadius;
-        double posY1 = centerY-agent1.getGraphicalPosition().getY()*arenaRadius;
-        double posX2 = centerX+agent2.getGraphicalPosition().getX()*arenaRadius;
-        double posY2 = centerY-agent2.getGraphicalPosition().getY()*arenaRadius;
+        graphicsContext.setStroke(game.getTeamColor(team));
+        graphicsContext.setLineWidth(0.8);
+        double posX1 = game.getScreenPosX(agent1.getGraphicalPosition().getX());
+        double posY1 = game.getScreenPosY(agent1.getGraphicalPosition().getY());
+        double posX2 = game.getScreenPosX(agent2.getGraphicalPosition().getX());
+        double posY2 = game.getScreenPosY(agent2.getGraphicalPosition().getY());
         graphicsContext.strokeLine(posX1, posY1, posX2, posY2);
         super.draw(graphicsContext, game);
     }

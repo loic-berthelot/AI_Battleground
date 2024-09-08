@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 public class Agent extends Particle {
     final static private double sqrtHalf = Math.sqrt(0.5);
+    final private int group;
     static private double speed;
     static private double agentRadius;
     private Position position;
@@ -28,15 +29,16 @@ public class Agent extends Particle {
     private double orientation;
     private double targetOrientation;
     ArrayList<Eye> eyes;
-    public Agent(Position position, int team) {
+    public Agent(int team, int group) {
         super(agentRadius);
         this.team = team;
+        this.group = group;
         strategy = new NullStrategy();
         id = globalId++;
         eyes = new ArrayList<>();
         eyes.add(new Eye(this, -0.6));
         eyes.add(new Eye(this, 0.6));
-        init(position);
+        init();
     }
     public void init() {
         alive = true;
@@ -85,11 +87,14 @@ public class Agent extends Particle {
         final double rotationSpeed = 0.1;
         if (Math.abs(diff) <= rotationSpeed) {
             orientation = targetOrientation;
+            for (Eye eye : eyes) eye.adjustOrientation(0);
         } else {
             if(diff > Math.PI || diff < 0){
                 orientation -= rotationSpeed;
+                for (Eye eye : eyes) eye.adjustOrientation(-1);
             } else {
                 orientation += rotationSpeed;
+                for (Eye eye : eyes) eye.adjustOrientation(1);
             }
         }
     }
@@ -123,6 +128,9 @@ public class Agent extends Particle {
     public double getPosY() {
         return position.getY();
     }
+    public int getGroup(){
+        return group;
+    }
     public void setPos(Position position) {
         this.position = position;
     }
@@ -144,18 +152,12 @@ public class Agent extends Particle {
     @Override
     public void draw(GraphicsContext graphicsContext, Game game) {
         super.draw(graphicsContext, game);
-        int arenaRadius = game.getArenaRadius();/*
-        if (strategy.isHuman()) {
-            graphicsContext.setFill(Color.WHITE);
-            double size = 0.7 * radius * arenaRadius;
-            graphicsContext.fillOval(game.getCenterArenaX() + graphicalPosition.getX() * arenaRadius - 0.5 * size, game.getCenterArenaY() - graphicalPosition.getY() * arenaRadius - 0.5 * size, size, size);
-        }*/
         graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 200*agentRadius));
         graphicsContext.setFill(Color.BLACK);
         Text text = new Text(String.valueOf(id));
         double textWidth = text.getLayoutBounds().getWidth();
         double textHeight = text.getLayoutBounds().getHeight();
-        graphicsContext.fillText(text.getText(), game.getCenterArenaX() + graphicalPosition.getX()* arenaRadius-textWidth/2, game.getCenterArenaY() - graphicalPosition.getY() * arenaRadius+textHeight/2);
+        graphicsContext.fillText(text.getText(), game.getScreenPosX(graphicalPosition.getX())-textWidth/2, game.getScreenPosY(graphicalPosition.getY())+textHeight/2);
         for (int i = 0; i < eyes.size(); i++) {
             eyes.get(i).draw(graphicsContext, game);
         }
@@ -186,5 +188,8 @@ public class Agent extends Particle {
     }
     public double getOrientation(){
         return orientation;
+    }
+    public double getTargetOrientation(){
+        return targetOrientation;
     }
 }

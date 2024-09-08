@@ -12,7 +12,7 @@ public class NNStrategy1output extends NNStrategy {
     public NNStrategy1output(Game game, Agent controlledAgent){
         super(game, controlledAgent);
         this.controlledAgent = controlledAgent;
-        numInputs = 2*(game.getAgentsNumber()+game.getTeamsNumber())+6;
+        numInputs = 2*(game.getAgentsNumber()+game.getKillingPointsNumber())+6;
         numOutputs = 1;
         epsilon = 0.8;
         epsilonMultiplier = 0.95;

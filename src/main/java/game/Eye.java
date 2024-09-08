@@ -11,19 +11,36 @@ public class Eye {
     final private double pupilRadius;
     final private double forwardShift;
     final private double pupilForwardShift;
+    private double pupilMovementShift;
+    final private double movementShiftLimit;
     public Eye(Agent agent, double angleShift){
         this.agent = agent;
         this.angleShift = angleShift;
-        radius = 0.45*agent.getRadius();
+        radius = 0.22*agent.getRadius();
         pupilRadius = 0.6*radius;
         forwardShift = 0.7*agent.getRadius();
         pupilForwardShift = 0.12 * forwardShift;
+        movementShiftLimit = 0.4*Math.PI;
     }
     public double getOrientation(){
         return agent.getOrientation()+angleShift;
     }
+    public void adjustOrientation(int direction){
+        if (direction == 0) {
+            pupilMovementShift *= 0.85;
+            if (Math.abs(pupilMovementShift) < 0.15){
+                pupilMovementShift = 0;
+            }
+        } else if(direction > 0){
+            pupilMovementShift += 0.6;
+            if (pupilMovementShift > movementShiftLimit) pupilMovementShift = movementShiftLimit;
+        } else {
+            pupilMovementShift -= 0.6;
+            if (pupilMovementShift < -movementShiftLimit) pupilMovementShift = -movementShiftLimit;
+        }
+    }
     public double getPupilOrientation(){
-        return getOrientation()-1.2*angleShift;
+        return getOrientation()+pupilMovementShift-1.2*angleShift;
     }
     public double getPosX(){
         return agent.getGraphicalPosition().getX()+forwardShift*Math.cos(getOrientation());
@@ -38,13 +55,11 @@ public class Eye {
         return getPosY()+pupilForwardShift*Math.sin(getPupilOrientation());
     }
     public void draw(GraphicsContext graphicsContext, Game game) {
-        int arenaRadius = game.getArenaRadius();
         graphicsContext.setFill(Color.WHITE);
-        double size = radius * arenaRadius;
-        graphicsContext.fillOval(game.getCenterArenaX() + getPosX() * arenaRadius - 0.5 * size, game.getCenterArenaY() - getPosY() * arenaRadius - 0.5 * size, size, size);
+        double size = game.getScreenSize(2*radius);
+        graphicsContext.fillOval(game.getScreenPosX(getPosX() - radius), game.getScreenPosY(getPosY() + radius), size, size);
         graphicsContext.setFill(Color.BLACK);
-        size = pupilRadius * arenaRadius;
-        graphicsContext.fillOval(game.getCenterArenaX() + getPupilPosX() * arenaRadius - 0.5 * size, game.getCenterArenaY() - getPupilPosY() * arenaRadius - 0.5 * size, size, size);
-
+        size = game.getScreenSize(2*pupilRadius);
+        graphicsContext.fillOval(game.getScreenPosX(getPupilPosX() - pupilRadius), game.getScreenPosY(getPupilPosY() + pupilRadius), size, size);
     }
 }
