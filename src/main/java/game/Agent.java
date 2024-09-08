@@ -29,8 +29,10 @@ public class Agent extends Particle {
     private double orientation;
     private double targetOrientation;
     ArrayList<Eye> eyes;
-    public Agent(int team, int group) {
+    Game game;
+    public Agent(Game game, int team, int group) {
         super(agentRadius);
+        this.game = game;
         this.team = team;
         this.group = group;
         strategy = new NullStrategy();
@@ -72,10 +74,7 @@ public class Agent extends Particle {
             position.addX(speed*dx*sqrtHalf);
             position.addY(speed*dy*sqrtHalf);
         }
-        double dist = position.distanceToCenter();
-        if (dist > 1-radius) {
-            position.multiply((1-radius)/dist);
-        }
+        game.getArena().replaceAgent(this);
         updateGraphicalPosition();
         positionsHistory.add(new Position(position));
         if (dx != 0 || dy != 0) {

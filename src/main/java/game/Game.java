@@ -1,5 +1,9 @@
 package game;
 
+import arena.Arena;
+import arena.CircularArena;
+import arena.SquareArena;
+import arena.TorusArena;
 import controller.InputBuffer;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
@@ -30,6 +34,7 @@ public class Game {
     final private int frameLimit;
     final private int recordingDelta;
     final private int decisionDelta;
+    private Arena arena;
     static {
         teamColors = new Vector<>();
         teamColors.add(Color.BLUE);
@@ -44,7 +49,7 @@ public class Game {
     public Game() {
         roundCount = 0;
         teamsNumber = 2;
-        teamSize = 4;
+        teamSize = 2;
         speed = 0.005;
         decisionDelta = 5;
         recordingDelta = 15;
@@ -52,6 +57,8 @@ public class Game {
         Agent.setSpeed(speed);
         frameLimit = 2500;
         scores = new Vector<>();
+        arena = new TorusArena(0.25);
+        //arena = new SquareArena();
         buildAgents();
         buildKillingPoints();
         giveStrategies();
@@ -63,6 +70,24 @@ public class Game {
         turboInputBuffer = new InputBuffer("Turbo");
         pausedInputBuffer = new InputBuffer("Pause");
         restartInputBuffer = new InputBuffer("Restart");
+    }
+
+    public void giveStrategies(){
+        int agentIndex = 0;
+        Agent a;
+        for (int i = 0; i < teamsNumber; i++) {
+            for (int j = 0; j < teamSize; j++) {
+                a = agents.get(agentIndex);
+                if (i == 0) {
+                    //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
+                    //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
+                    a.setStrategy(new NNStrategy1output(this, a));
+                } else {
+                    a.setStrategy(new RuleBasedStrategy(this, 0));
+                }
+                agentIndex++;
+            }
+        }
     }
     public void init(){
         roundCount++;
@@ -124,11 +149,13 @@ public class Game {
                 lights.add(new Light(new Position(agents.get(i).getPosition()), getTeamColor(agents.get(i).getTeam()), Agent.getAgentRadius()));
             }
         }
-        Iterator<Light> iter = lights.iterator();
-        while (iter.hasNext()) {
-            Light light = iter.next();
-            if (light.evolve()) {
-                iter.remove();
+        synchronized (lights) {
+            Iterator<Light> iter = lights.iterator();
+            while (iter.hasNext()) {
+                Light light = iter.next();
+                if (light.evolve()) {
+                    iter.remove();
+                }
             }
         }
         checkEndRound();
@@ -160,24 +187,8 @@ public class Game {
         agents = new Vector<>();
         for (int i = 0; i < teamsNumber; i++) {
             for (int j = 0; j < teamSize; j++) {
-                Agent a = new Agent(i, (j < 2)?0 :1);
+                Agent a = new Agent(this, i, (j < 2)?0 :1);
                 agents.add(a);
-            }
-        }
-    }
-    public void giveStrategies(){
-        int agentIndex = 0;
-        Agent a;
-        for (int i = 0; i < teamsNumber; i++) {
-            for (int j = 0; j < teamSize; j++) {
-                a = agents.get(agentIndex);
-                if (i == 0) {
-                    if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
-                    else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                } else {
-                    a.setStrategy(new NNStrategy1output(this, a));
-                }
-                agentIndex++;
             }
         }
     }
@@ -258,5 +269,11 @@ public class Game {
     }
     public double getScreenSize(double size) {
         return getArenaRadius()*size;
+    }
+    public Arena getArena(){
+        return arena;
+    }
+    public Color getBackgroundColor(){
+        return new Color(0.7,0.7,0.7,1);
     }
 }

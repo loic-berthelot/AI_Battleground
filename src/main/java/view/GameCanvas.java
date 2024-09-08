@@ -28,40 +28,19 @@ public class GameCanvas extends Canvas {
     }
     public void clearCanvas(){
         //graphicsContext.clearRect(0, 0, width, height);
-        graphicsContext.setFill(new Color(0.7,0.7,0.7,1));
+        graphicsContext.setFill(game.getBackgroundColor());
         graphicsContext.fillRect(0, 0, width, height);
-    }
-    public void displayGrid(int lines, int columns){
-        graphicsContext.setStroke(new Color(1,1,1,0.2));
-        graphicsContext.setLineWidth(1);
-        double pos, extremity;
-        for (double i = 1; i <= lines; i++) {
-            pos = 2 * i / (double) (lines+1) - 1;
-            extremity = Math.sqrt(1-pos*pos);
-            pos = game.getScreenPosY(pos);
-            graphicsContext.strokeLine(game.getScreenPosX(extremity), pos, game.getScreenPosX(-extremity), pos);
-        }
-        for (double i = 1; i <= columns; i++) {
-            pos = 2 * i / (double) (columns+1) - 1;
-            extremity = Math.sqrt(1-pos*pos);
-            pos = game.getScreenPosX(pos);
-            graphicsContext.strokeLine(pos, game.getScreenPosY(extremity), pos, game.getScreenPosY(-extremity));
-        }
-        graphicsContext.setStroke(new Color(1,1,1,0.15));
-        graphicsContext.strokeLine(game.getScreenPosX(0), game.getScreenPosY(-1), game.getScreenPosX(0), game.getScreenPosY(1));
-        graphicsContext.strokeLine(game.getScreenPosX(-1), game.getScreenPosY(0), game.getScreenPosX(1), game.getScreenPosY(0));
     }
     public void display() {
         Vector<Agent> agents = game.getAgents();
         Vector<KillingPoint> killingPoints = game.getKillingPoints();
         Vector<Light> lights = game.getLights();
         clearCanvas();
-        double radius = game.getArenaRadius();
-        graphicsContext.setFill(new Color(0,0,0,1));
-        graphicsContext.fillOval(10,10, 2*radius,2*radius);
-        displayGrid(5, 5);
-        for (Light light : lights) {
-            light.draw(graphicsContext, game);
+        game.getArena().draw(graphicsContext, game);
+        synchronized(lights) {
+            for (Light light : lights) {
+                light.draw(graphicsContext, game);
+            }
         }
         for (int i = 0; i < killingPoints.size(); i++) {
             killingPoints.get(i).draw(graphicsContext, game);
@@ -71,8 +50,8 @@ public class GameCanvas extends Canvas {
         }
         graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 20));
         graphicsContext.setFill(Color.BLACK);
-        graphicsContext.fillText("Round "+Integer.toString(game.getRoundCount()), 10, 20);
-        graphicsContext.fillText("Frame "+Integer.toString(game.getFrameCount()), 10, 40);
+        graphicsContext.fillText("Round "+Integer.toString(game.getRoundCount()), game.getScreenPosX(1)+10, game.getScreenPosX(1)-30);
+        graphicsContext.fillText("Frame "+Integer.toString(game.getFrameCount()), game.getScreenPosX(1)+10, game.getScreenPosX(1)-10);
         graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 40));
         for (int i = 0; i < game.getTeamsNumber(); i++){
             graphicsContext.setFill(Game.getTeamColor(i));

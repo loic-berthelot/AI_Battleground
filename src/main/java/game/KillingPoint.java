@@ -43,6 +43,10 @@ public class KillingPoint extends Particle {
         double posX2 = game.getScreenPosX(agent2.getGraphicalPosition().getX());
         double posY2 = game.getScreenPosY(agent2.getGraphicalPosition().getY());
         graphicsContext.strokeLine(posX1, posY1, posX2, posY2);
+
+        graphicsContext.setFill(Color.WHITE.deriveColor(0,1,colorShift, 0.5*colorShift));
+        double size = game.getScreenSize((6*colorShift)*radius);
+        graphicsContext.fillOval(game.getScreenPosX(getPosX())-0.5*size, game.getScreenPosY(getPosY())-0.5*size, size, size);
         super.draw(graphicsContext, game);
     }
     public Agent getAgent1(){
