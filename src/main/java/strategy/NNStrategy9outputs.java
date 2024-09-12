@@ -5,7 +5,6 @@ import game.Game;
 
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Vector;
 
 public class NNStrategy9outputs extends NNStrategy {
     final private ArrayList<Integer> choices;
@@ -18,18 +17,18 @@ public class NNStrategy9outputs extends NNStrategy {
         epsilon = 0.8;
         epsilonMultiplier = 0.95;
         gamma = 0.7;
-        maxHistoryDepth = 50;
-        learningRate = 0.001;
+        maxHistoryDepth = 30;
+        learningRate = 0.05;
         learningRateMultiplier = 0.99;
         nEpochs = 50;
         rewardIntensity = 3;
         punishmentIntensity = -1;
-        recordingInterval = 15;
+        recordingInterval = game.getRecordingDelta();
         intermediateLearn = false;
         choices = new ArrayList<Integer>();
         scoreMethod = 0;
         Random random = new Random();
-        nn = new NNdl4j(learningRate, random.nextInt(10000), numInputs, numOutputs);
+        neuralNetwork = new NNdl4j(learningRate, random.nextInt(10000), numInputs, numOutputs);
     }
     public void decide(Agent agent) {
         Random random = new Random();
@@ -39,7 +38,7 @@ public class NNStrategy9outputs extends NNStrategy {
             agent.setOrderY(random.nextInt(3)-1);
         } else {
             scoreMethod = 0;
-            double[] outputs = nn.predict(calculateState());
+            double[] outputs = neuralNetwork.predict(calculateState());
             int maxIndex = 4;
             double maxScore = outputs[4];
             double score;
@@ -67,10 +66,10 @@ public class NNStrategy9outputs extends NNStrategy {
             int choice = choices.get(i);
             rewards[9*i+choice] = reward;
         }
-        nn.fit(statesFeatures, rewards, featuresSize, nEpochs);
+        neuralNetwork.fit(statesFeatures, rewards, featuresSize, nEpochs);
         epsilon *= epsilonMultiplier;
         learningRate *= learningRateMultiplier;
-        nn.setLearningRate(learningRate);
+        neuralNetwork.setLearningRate(learningRate);
     }
 
     public int calculateChoice() {

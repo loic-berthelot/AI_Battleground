@@ -10,4 +10,6 @@ public abstract class Arena {
     public abstract void draw(GraphicsContext graphicsContext, Game game);
     public abstract void displayGrid(GraphicsContext graphicsContext, Game game, int lines, int columns);
     public abstract void replaceAgent(Agent agent);
+    public boolean hasCorners(){ return false; }
+    public double getInternalRadius(){ return 0;}
 }

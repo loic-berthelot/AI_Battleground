@@ -41,4 +41,7 @@ public class SquareArena extends Arena{
         if (x > 1-radius) position.setX(1-radius);
         if (y > 1-radius) position.setY(1-radius);
     }
+
+    @Override
+    public boolean hasCorners(){ return true; }
 }

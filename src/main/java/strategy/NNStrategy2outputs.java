@@ -2,12 +2,9 @@ package strategy;
 
 import game.Agent;
 import game.Game;
-import game.KillingPoint;
-import game.Position;
 
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Vector;
 
 public class NNStrategy2outputs extends NNStrategy {
     final private ArrayList<double[]> choices;
@@ -15,7 +12,6 @@ public class NNStrategy2outputs extends NNStrategy {
     private int recordingInterval;
     public NNStrategy2outputs(Game game, Agent controlledAgent) {
         super(game, controlledAgent);
-        numInputs = 2 * (game.getAgentsNumber() + game.getTeamsNumber()) + 6;
         numOutputs = 2;
         epsilon = 0.8;
         epsilonMultiplier = 0.95;
@@ -31,7 +27,7 @@ public class NNStrategy2outputs extends NNStrategy {
         choices = new ArrayList<double[]>();
         scoreMethod = 0;
         Random random = new Random();
-        nn = new NNdl4j(learningRate, random.nextInt(10000), numInputs, numOutputs);
+        neuralNetwork = new NNdl4j(learningRate, random.nextInt(10000), numInputs, numOutputs);
     }
     public void decide(Agent agent) {
         Random random = new Random();
@@ -41,7 +37,7 @@ public class NNStrategy2outputs extends NNStrategy {
             agent.setOrderY(random.nextInt(3)-1);
         } else {
             scoreMethod = 0;
-            double[] outputs = nn.predict(calculateState());
+            double[] outputs = neuralNetwork.predict(calculateState());
             double dx = outputs[0];
             double dy = outputs[1];
             double threshold =  2*game.getSpeed();
@@ -66,10 +62,10 @@ public class NNStrategy2outputs extends NNStrategy {
             rewards[2 * i + 1] = reward * choice[1];
             reward *= gamma;
         }
-        nn.fit(statesFeatures, rewards, featuresSize, nEpochs);
+        neuralNetwork.fit(statesFeatures, rewards, featuresSize, nEpochs);
         epsilon *= epsilonMultiplier;
         learningRate *= learningRateMultiplier;
-        nn.setLearningRate(learningRate);
+        neuralNetwork.setLearningRate(learningRate);
     }
 
     public double[] calculateChoice() {

@@ -4,12 +4,11 @@ import game.Agent;
 import game.Game;
 import game.KillingPoint;
 
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
 
 public abstract class NNStrategy extends Strategy {
-    protected NNdl4j nn;
+    protected NNdl4j neuralNetwork;
     protected int numInputs;
     protected int numOutputs;
     protected Agent controlledAgent;
@@ -26,11 +25,15 @@ public abstract class NNStrategy extends Strategy {
     protected Vector<double[]> states;
     public NNStrategy(Game game, Agent controlledAgent) {
         super(game);
+        numInputs = 2*(game.getAgentsNumber()+game.getKillingPointsNumber())+6;
         this.controlledAgent = controlledAgent;
         states = new Vector<double[]>();
     }
     public static double distance(double x1, double y1, double x2, double y2) {
         return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+    }
+    public double invertValue(double val) {
+        return 0.01*Math.max(val, 0.01);
     }
     public double[] calculateState(){
         int agentsSize = game.getAgentsNumber();
@@ -39,15 +42,27 @@ public abstract class NNStrategy extends Strategy {
         Vector<KillingPoint> killingPoints = game.getKillingPoints();
         double[] state = new double[numInputs];
         int indexState = 0;
-        for (int i = 0; i < agentsSize; i++) {
-            Agent agent = agents.get(i);
+        /*
+        state[indexState] = controlledAgent.getPosX();
+        state[indexState+1] = controlledAgent.getPosY();
+        indexState += 2;
+        */
+
+        double distDanger = 2;
+        double distPrey = 2;
+        double distAlly = 2;
+        double dist = 0;
+        for (Agent agent : agents) {
             state[indexState] = agent.getPosX();
             state[indexState+1] = agent.getPosY();
             indexState += 2;
+            if(agent != controlledAgent && agent.getTeam() == controlledAgent.getTeam()){
+                dist = distance(agent.getPosX(), agent.getPosY(), controlledAgent.getPosX(), controlledAgent.getPosY());
+                if (dist < distAlly) {
+                    distAlly = dist;
+                }
+            }
         }
-        double distDanger = 2;
-        double distPrey = 2;
-        double dist;
         for (int i = 0; i < kpSize; i++) {
             KillingPoint kp = killingPoints.get(i);
             state[indexState] = kp.getPosX();
@@ -55,27 +70,39 @@ public abstract class NNStrategy extends Strategy {
             indexState += 2;
             if (kp.getTeam() == controlledAgent.getTeam()) {
                 for (Agent enemy : agents) {
-                    dist = distance(kp.getPosX(), kp.getPosY(), enemy.getPosX(), enemy.getPosY());
-                    if (dist < distDanger) {
-                        distDanger = dist;
+                    if (enemy.getTeam() != controlledAgent.getTeam()) {
+                        dist = distance(kp.getPosX(), kp.getPosY(), enemy.getPosX(), enemy.getPosY());
+                        if (dist < distPrey) {
+                            distPrey = dist;
+                        }
                     }
                 }
             } else {
-                dist = distance(kp.getPosX(), kp.getPosY(), controlledAgent.getPosX(), controlledAgent.getPosY());
-                if (dist < distPrey) {
-                    distPrey = dist;
+                for (Agent ally : agents) {
+                    if (ally.getTeam() == controlledAgent.getTeam()) {
+                        dist = distance(kp.getPosX(), kp.getPosY(), ally.getPosX(), ally.getPosY());
+                        if (dist < distDanger) {
+                            distDanger = dist;
+                        }
+                    }
                 }
             }
         }
         distDanger = Math.max(distDanger-Agent.getAgentRadius(), 0.001);
         distPrey = Math.max(distPrey-Agent.getAgentRadius(), 0.001);
-        state[indexState] = distDanger;
-        state[indexState+1] = distPrey;
-        state[indexState+2] = invertDistanceSumHeuristic(controlledAgent, false,0);
+        state[indexState] = game.getArena().hasCorners() ? 1 : 0;
+        state[indexState+1] = game.getArena().getInternalRadius();
+        double agentRadius = Agent.getAgentRadius();
+        state[indexState+2] = invertValue(distDanger-agentRadius);
+        state[indexState+3] = invertValue(distPrey-agentRadius);
+        state[indexState+4] = invertValue(distAlly-agentRadius);
+        state[indexState+5] = invertValue(game.getFrameLimit() - game.getFrameCount())/((double)game.getFrameLimit());
+        /*
+        state[indexState+4] = invertDistanceSumHeuristic(controlledAgent, false,0);
         Random random = new Random();
-        state[indexState+3] = random.nextDouble(2)-1;
-        state[indexState+4] = 0.01*game.getFrameCount();
-        state[indexState+5] = 0.01*(game.getFrameCount()%200);
+        state[indexState+5] = random.nextDouble(2)-1;
+        state[indexState+6] = 0.01*game.getFrameCount();
+        state[indexState+7] = 0.01*(game.getFrameCount()%200);*/
         return state;
     }
 

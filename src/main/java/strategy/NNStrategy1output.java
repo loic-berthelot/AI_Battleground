@@ -1,9 +1,7 @@
 package strategy;
 import game.*;
 
-import java.util.ArrayList;
 import java.util.Random;
-import java.util.Vector;
 
 import game.Game;
 
@@ -12,24 +10,23 @@ public class NNStrategy1output extends NNStrategy {
     public NNStrategy1output(Game game, Agent controlledAgent){
         super(game, controlledAgent);
         this.controlledAgent = controlledAgent;
-        numInputs = 2*(game.getAgentsNumber()+game.getKillingPointsNumber())+6;
         numOutputs = 1;
         epsilon = 0.8;
         epsilonMultiplier = 0.95;
-        gamma = 0.7;
-        maxHistoryDepth = 10;
-        learningRate = 0.001;
+        gamma = 0.8;
+        maxHistoryDepth = 20;
+        learningRate = 0.05;
         learningRateMultiplier = 0.99;
         nEpochs = 50;
-        rewardIntensity = 1;
+        rewardIntensity = 3;
         punishmentIntensity = -1;
         intermediateLearn = false;
         scoreMethod = 0;
         Random random = new Random();
-        nn = new NNdl4j(learningRate,random.nextInt(10000), numInputs, numOutputs);
+        neuralNetwork = new NNdl4j(learningRate,random.nextInt(10000), numInputs, numOutputs);
     }
     private double calculateScore(){
-        if (scoreMethod == 0) return nn.predict(calculateState())[0];
+        if (scoreMethod == 0) return neuralNetwork.predict(calculateState())[0];
         return invertDistanceSumHeuristic(controlledAgent, false, 0);
     }
     @Override
@@ -42,11 +39,9 @@ public class NNStrategy1output extends NNStrategy {
         Random random = new Random();
         if (random.nextFloat() < epsilon) {
             scoreMethod = 1;
-            goToBestPosition(agent);
-            /*
+            //goToBestPosition(agent);
             agent.setOrderX(random.nextInt(3)-1);
             agent.setOrderY(random.nextInt(3)-1);
-            */
         } else {
             scoreMethod = 0;
             goToBestPosition(agent);
@@ -64,9 +59,9 @@ public class NNStrategy1output extends NNStrategy {
             rewards[i] = reward;
             reward *= gamma;
         }
-        nn.fit(statesFeatures, rewards, featuresSize, nEpochs);
+        neuralNetwork.fit(statesFeatures, rewards, featuresSize, nEpochs);
         epsilon*=epsilonMultiplier;
         learningRate *= learningRateMultiplier;
-        nn.setLearningRate(learningRate);
+        neuralNetwork.setLearningRate(learningRate);
     }
 }

@@ -48,14 +48,14 @@ public class Game {
     }
     public Game() {
         roundCount = 0;
-        teamsNumber = 2;
+        teamsNumber = 3;
         teamSize = 2;
         speed = 0.005;
         decisionDelta = 5;
-        recordingDelta = 15;
+        recordingDelta = 30;
         Agent.setAgentRadius(0.08);
         Agent.setSpeed(speed);
-        frameLimit = 2500;
+        frameLimit = 1800;
         scores = new Vector<>();
         arena = new TorusArena(0.25);
         //arena = new SquareArena();
@@ -81,9 +81,10 @@ public class Game {
                 if (i == 0) {
                     //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
                     //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                    a.setStrategy(new NNStrategy1output(this, a));
+                    a.setStrategy(new NNStrategy9outputs(this, a));
                 } else {
-                    a.setStrategy(new RuleBasedStrategy(this, 0));
+                    a.setStrategy(new NNStrategy1output(this, a));
+                    //a.setStrategy(new RuleBasedStrategy(this, 0));
                 }
                 agentIndex++;
             }
@@ -96,10 +97,23 @@ public class Game {
         Random random = new Random();
         double angleShift = random.nextDouble(2*Math.PI);
         int agentIndex = 0;
+        switch (random.nextInt(3)) {
+            case 0:
+                arena = new CircularArena();
+                break;
+            case 1:
+                arena = new SquareArena();
+                break;
+            case 2:
+                arena = new TorusArena(0.05+random.nextDouble(0.35));
+                break;
+        }
         for (int i = 0; i < teamsNumber; i++) {
             for (int j = 0; j < teamSize; j++) {
-                double angle = 2*Math.PI*i/teamsNumber+angleShift;
-                double dist = 0.4+0.4*(j/(double)teamSize);
+                //double angle = 2*Math.PI*i/teamsNumber+angleShift;
+                //double dist = 0.4+0.4*(j/(double)teamSize);
+                double angle = random.nextDouble(2*Math.PI);
+                double dist = random.nextDouble(1);
                 agents.get(agentIndex).init(new Position(dist * Math.cos(angle), dist * Math.sin(angle)));
                 agentIndex++;
             }
@@ -140,7 +154,7 @@ public class Game {
         }
         if (frameLimit >= 0 && frameCount>= frameLimit){
             for (int i = 0; i < agents.size(); i++) {
-                agents.get(i).getStrategy().learn( 0.3*agents.get(i).getStrategy().getPunishmentIntensity());
+                agents.get(i).getStrategy().learn( 3*agents.get(i).getStrategy().getPunishmentIntensity());
             }
             init();
         }
@@ -275,5 +289,11 @@ public class Game {
     }
     public Color getBackgroundColor(){
         return new Color(0.7,0.7,0.7,1);
+    }
+    public int getRecordingDelta(){
+        return recordingDelta;
+    }
+    public int getFrameLimit(){
+        return frameLimit;
     }
 }

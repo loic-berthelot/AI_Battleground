@@ -47,4 +47,6 @@ public class TorusArena extends Arena{
             position.multiply((internalRadius+agentRadius)/dist);
         }
     }
+    @Override
+    public double getInternalRadius(){ return internalRadius;}
 }
