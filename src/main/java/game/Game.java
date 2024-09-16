@@ -34,6 +34,7 @@ public class Game {
     final private int frameLimit;
     final private int recordingDelta;
     final private int decisionDelta;
+    private GameHistory gameHistory;
     private Arena arena;
     static {
         teamColors = new Vector<>();
@@ -51,13 +52,14 @@ public class Game {
         teamsNumber = 3;
         teamSize = 2;
         speed = 0.005;
-        decisionDelta = 5;
-        recordingDelta = 30;
+        decisionDelta = 25;
+        recordingDelta = 20;
         Agent.setAgentRadius(0.08);
         Agent.setSpeed(speed);
         frameLimit = 1800;
         scores = new Vector<>();
         arena = new TorusArena(0.25);
+        gameHistory = new GameHistory(this, 100, 600);
         //arena = new SquareArena();
         buildAgents();
         buildKillingPoints();
@@ -81,9 +83,11 @@ public class Game {
                 if (i == 0) {
                     //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
                     //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                    a.setStrategy(new NNStrategy9outputs(this, a));
+                    //a.setStrategy(new NNStrategy9outputs(this, a));
+                    a.setStrategy(new RuleBasedStrategy(this, 0));
                 } else {
-                    a.setStrategy(new NNStrategy1output(this, a));
+                    if (j==0) a.setStrategy(new NNStrategy1output(this, a));
+                    else a.setStrategy(agents.get(agentIndex-1).getStrategy());
                     //a.setStrategy(new RuleBasedStrategy(this, 0));
                 }
                 agentIndex++;
@@ -145,12 +149,11 @@ public class Game {
                 }
             }
         }
-        for (int i = 0; i < agents.size(); i++) {
-            agents.get(i).evolve(this);
-            agents.get(i).adjustOrientation();
+        for (Agent agent : agents) {
+            agent.evolve();
         }
-        for (int i = 0; i < killingPoints.size(); i++) {
-            killingPoints.get(i).evolve(this);
+        for (KillingPoint kp : killingPoints) {
+            kp.evolve(this);
         }
         if (frameLimit >= 0 && frameCount>= frameLimit){
             for (int i = 0; i < agents.size(); i++) {
@@ -193,6 +196,7 @@ public class Game {
                 Strategy strat = agents.get(i).getStrategy();
                 reward = scoreIncrease[agents.get(i).getTeam()] > 0 ? strat.getRewardIntensity() : strat.getPunishmentIntensity();
                 strat.learn(reward);
+                gameHistory.registerRatio(scoreIncrease);
             }
             init();
         }
@@ -295,5 +299,8 @@ public class Game {
     }
     public int getFrameLimit(){
         return frameLimit;
+    }
+    public GameHistory getGameHistory(){
+        return gameHistory;
     }
 }

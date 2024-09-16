@@ -47,6 +47,13 @@
             <artifactId>nd4j-api</artifactId>
             <version>${dl4j.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>

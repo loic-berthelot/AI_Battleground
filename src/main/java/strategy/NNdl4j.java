@@ -15,14 +15,13 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 import java.util.Random;
 
 public class NNdl4j {
-    private MultiLayerNetwork network;
-    private int numInputs;
-    private int numOutputs;
+    private final MultiLayerNetwork network;
+    private final int numInputs;
+    private final int numOutputs;
     private double learningRate;
     public NNdl4j(double learningRate, int seed, int numInputs, int numOutputs){
         this.numInputs = numInputs;
         this.numOutputs = numOutputs;
-        Random random = new Random(seed);
         int numHidden = 16;
         network = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
                 .seed(seed)
@@ -36,10 +35,7 @@ public class NNdl4j {
                 .layer(1, new DenseLayer.Builder().nIn(numHidden).nOut(numHidden)
                         .activation(Activation.SIGMOID)
                         .build())
-                .layer(2, new DenseLayer.Builder().nIn(numHidden).nOut(numHidden)
-                        .activation(Activation.SIGMOID)
-                        .build())
-                .layer(3, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
+                .layer(2, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
                         .activation(Activation.IDENTITY)
                         .nIn(numHidden).nOut(numOutputs).build())
                 .build()

@@ -50,12 +50,15 @@ public class GameCanvas extends Canvas {
         }
         graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 20));
         graphicsContext.setFill(Color.BLACK);
-        graphicsContext.fillText("Round "+Integer.toString(game.getRoundCount()), game.getScreenPosX(1)+10, game.getScreenPosX(1)-30);
-        graphicsContext.fillText("Frame "+Integer.toString(game.getFrameCount()), game.getScreenPosX(1)+10, game.getScreenPosX(1)-10);
+        graphicsContext.fillText("Round "+Integer.toString(game.getRoundCount()), game.getScreenPosX(1)+10, game.getScreenPosY(-1)-250);
+        String text = "Frame "+Integer.toString(game.getFrameCount());
+        if (game.getFrameLimit() > 0) text += " / "+Integer.toString(game.getFrameLimit());
+        graphicsContext.fillText(text, game.getScreenPosX(1)+10, game.getScreenPosY(-1)-230);
         graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 40));
         for (int i = 0; i < game.getTeamsNumber(); i++){
             graphicsContext.setFill(Game.getTeamColor(i));
             graphicsContext.fillText(Integer.toString(game.getScore(i)), game.getCenterArenaX()*2.1+i%4*140, 40+50*(int)(i/4));
         }
+        game.getGameHistory().draw(graphicsContext);
     }
 }

@@ -21,7 +21,7 @@ public class NNStrategy9outputs extends NNStrategy {
         learningRate = 0.05;
         learningRateMultiplier = 0.99;
         nEpochs = 50;
-        rewardIntensity = 3;
+        rewardIntensity = 1;
         punishmentIntensity = -1;
         recordingInterval = game.getRecordingDelta();
         intermediateLearn = false;

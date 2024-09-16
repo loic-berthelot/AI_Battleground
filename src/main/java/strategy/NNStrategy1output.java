@@ -11,14 +11,14 @@ public class NNStrategy1output extends NNStrategy {
         super(game, controlledAgent);
         this.controlledAgent = controlledAgent;
         numOutputs = 1;
-        epsilon = 0.8;
+        epsilon = 0.0;
         epsilonMultiplier = 0.95;
-        gamma = 0.8;
-        maxHistoryDepth = 20;
-        learningRate = 0.05;
-        learningRateMultiplier = 0.99;
-        nEpochs = 50;
-        rewardIntensity = 3;
+        gamma = 0.9;
+        maxHistoryDepth = 40;
+        learningRate = 0.003;
+        learningRateMultiplier = 1;
+        nEpochs = 3;
+        rewardIntensity = 2;
         punishmentIntensity = -1;
         intermediateLearn = false;
         scoreMethod = 0;
@@ -26,7 +26,9 @@ public class NNStrategy1output extends NNStrategy {
         neuralNetwork = new NNdl4j(learningRate,random.nextInt(10000), numInputs, numOutputs);
     }
     private double calculateScore(){
-        if (scoreMethod == 0) return neuralNetwork.predict(calculateState())[0];
+        if (scoreMethod == 0) {
+            return neuralNetwork.predict(calculateState())[0];
+        }
         return invertDistanceSumHeuristic(controlledAgent, false, 0);
     }
     @Override
@@ -36,7 +38,7 @@ public class NNStrategy1output extends NNStrategy {
         return calculateScore();
     }
     public void decide(Agent agent){
-        Random random = new Random();
+        final Random random = new Random();
         if (random.nextFloat() < epsilon) {
             scoreMethod = 1;
             //goToBestPosition(agent);

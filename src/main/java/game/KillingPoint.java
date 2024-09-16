@@ -61,4 +61,7 @@ public class KillingPoint extends Particle {
     public double getPosY(){
         return 0.5*(agent1.getPosY()+agent2.getPosY());
     }
+    public Position getGraphicalPosition(){
+        return new Position(0.5*(agent1.getGraphicalPosition().getX()+agent2.getGraphicalPosition().getX()), 0.5*(agent1.getGraphicalPosition().getY()+agent2.getGraphicalPosition().getY()));
+    }
 }

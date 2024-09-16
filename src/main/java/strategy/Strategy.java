@@ -15,11 +15,6 @@ public abstract class Strategy {
     public Strategy(Game game){
         this.game = game;
     }
-    public int getOrderX() {
-        return orderX;
-    }public int getOrderY() {
-        return orderY;
-    }
     public abstract void decide(Agent agent);
     public double getRewardIntensity() {
         return 0;
@@ -38,9 +33,9 @@ public abstract class Strategy {
     }
     public void goToBestPosition(Agent agent){
         Position position = agent.getPosition();
-        double shift = 1;
         agent.setOrderX(0);
         agent.setOrderY(0);
+        double shift = 1;
         double bestScore = simulateMove(agent, position, 0, 0);
         double score;
         for (int i = -1; i <= 1; i++) {

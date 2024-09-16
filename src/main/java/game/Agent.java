@@ -75,11 +75,6 @@ public class Agent extends Particle {
             position.addY(speed*dy*sqrtHalf);
         }
         game.getArena().replaceAgent(this);
-        updateGraphicalPosition();
-        positionsHistory.add(new Position(position));
-        if (dx != 0 || dy != 0) {
-            targetOrientation = (Math.atan2(dy, dx)+2*Math.PI)%(2*Math.PI);
-        }
     }
     public void adjustOrientation(){
         double diff = (targetOrientation - orientation+2*Math.PI)%(2*Math.PI);
@@ -97,8 +92,14 @@ public class Agent extends Particle {
             }
         }
     }
-    public void evolve(Game game){
+    public void evolve(){
         move(orderX, orderY);
+        adjustOrientation();
+        updateGraphicalPosition();
+        positionsHistory.add(new Position(position));
+        if (orderX != 0 || orderY != 0) {
+            targetOrientation = (Math.atan2(orderY, orderX)+2*Math.PI)%(2*Math.PI);
+        }
     }
     public static void setAgentRadius(double r) {
         agentRadius = r;
