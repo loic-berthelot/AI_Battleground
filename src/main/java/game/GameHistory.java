@@ -41,7 +41,8 @@ public class GameHistory {
             for (int[] s : scores) {
                 teamPoints += s[i];
             }
-            ratio[i] = teamPoints/totalPoints;
+            if(totalPoints > 0) ratio[i] = teamPoints/totalPoints;
+            else ratio[i] = 0;
         }
         ratios.add(0, ratio);
         if (ratios.size() > ratiosDepth) {
@@ -50,11 +51,11 @@ public class GameHistory {
     }
     public void draw(GraphicsContext graphicsContext) {
         synchronized (ratios) {
-            final double width = 600;
-            final double height = 200;
+            final double width = 900;
+            final double height = 300;
             final int border = 4;
             final double cornerX = game.getScreenPosX(1)+10+border;
-            final double cornerY = game.getScreenPosY(-1)-height-2*border;
+            final double cornerY = game.getScreenPosY(-1)-height-border;
             graphicsContext.setFill(Color.BLACK);
             graphicsContext.fillRect(cornerX-border, cornerY-border, width+2*border, height+2*border);
             int teamsNumber = game.getTeamsNumber();
@@ -64,9 +65,20 @@ public class GameHistory {
                 totalHeight = 0;
                 for (int i = 0; i < teamsNumber; i++) {
                     graphicsContext.setFill(Game.getTeamColor(i));
-                    graphicsContext.fillRect(cornerX+(ratiosDepth-j-1)*width/((double) ratiosDepth), cornerY + totalHeight, width / ((double) ratiosDepth), height*ratios.get(j)[i]);
+                    graphicsContext.fillRect(cornerX+(ratiosDepth-j-1)*width/((double) ratiosDepth), cornerY + totalHeight, 1.5*width / ((double) ratiosDepth), height*ratios.get(j)[i]);
                     totalHeight += height*ratios.get(j)[i];
                 }
+            }
+            graphicsContext.setStroke(new Color(1,1,1,0.7));
+            graphicsContext.setLineWidth(1);
+            final int divisionsNumber = 10;
+            for (int i = 1; i < divisionsNumber; i++) {
+                if (i==divisionsNumber/2) {
+                    graphicsContext.setLineWidth(3);
+                } else {
+                    graphicsContext.setLineWidth(1.5);
+                }
+                graphicsContext.strokeLine(cornerX, cornerY+i/(double) divisionsNumber*height, cornerX+width, cornerY+i/(double) divisionsNumber*height);
             }
         }
     }

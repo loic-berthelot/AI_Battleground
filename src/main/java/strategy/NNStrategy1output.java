@@ -11,14 +11,14 @@ public class NNStrategy1output extends NNStrategy {
         super(game, controlledAgent);
         this.controlledAgent = controlledAgent;
         numOutputs = 1;
-        epsilon = 0.0;
-        epsilonMultiplier = 0.95;
+        epsilon = 0.8;
+        epsilonMultiplier = 0.98 ;
         gamma = 0.9;
         maxHistoryDepth = 40;
         learningRate = 0.003;
         learningRateMultiplier = 1;
         nEpochs = 3;
-        rewardIntensity = 2;
+        rewardIntensity = 1;
         punishmentIntensity = -1;
         intermediateLearn = false;
         scoreMethod = 0;

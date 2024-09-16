@@ -124,7 +124,7 @@ public abstract class NNStrategy extends Strategy {
     }
     @Override
     public void recordState(){
-        states.insertElementAt(calculateState(), 0);
+        states.add(0, calculateState());
     }
     @Override
     public void discardStates(){

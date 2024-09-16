@@ -42,14 +42,14 @@ public class Game {
         teamColors.add(Color.RED);
         teamColors.add(Color.GREEN);
         teamColors.add(Color.YELLOW);
-        teamColors.add(Color.AZURE);
+        teamColors.add(Color.OLIVE);
         teamColors.add(Color.PURPLE);
-        teamColors.add(Color.DARKTURQUOISE);
+        teamColors.add(Color.AQUAMARINE);
         teamColors.add(Color.ORANGE);
     }
     public Game() {
         roundCount = 0;
-        teamsNumber = 3;
+        teamsNumber = 2;
         teamSize = 2;
         speed = 0.005;
         decisionDelta = 25;
@@ -80,13 +80,13 @@ public class Game {
         for (int i = 0; i < teamsNumber; i++) {
             for (int j = 0; j < teamSize; j++) {
                 a = agents.get(agentIndex);
-                if (i == 0) {
+                if (i == -1) {
                     //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
                     //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
                     //a.setStrategy(new NNStrategy9outputs(this, a));
                     a.setStrategy(new RuleBasedStrategy(this, 0));
                 } else {
-                    if (j==0) a.setStrategy(new NNStrategy1output(this, a));
+                    if (j==0) a.setStrategy(new NNStrategy9outputs(this, a));
                     else a.setStrategy(agents.get(agentIndex-1).getStrategy());
                     //a.setStrategy(new RuleBasedStrategy(this, 0));
                 }
@@ -114,10 +114,10 @@ public class Game {
         }
         for (int i = 0; i < teamsNumber; i++) {
             for (int j = 0; j < teamSize; j++) {
-                //double angle = 2*Math.PI*i/teamsNumber+angleShift;
-                //double dist = 0.4+0.4*(j/(double)teamSize);
-                double angle = random.nextDouble(2*Math.PI);
-                double dist = random.nextDouble(1);
+                double angle = 2*Math.PI*i/teamsNumber+angleShift;
+                double dist = 0.4+0.4*(j/(double)teamSize);
+                //double angle = random.nextDouble(2*Math.PI);
+                //double dist = random.nextDouble(1);
                 agents.get(agentIndex).init(new Position(dist * Math.cos(angle), dist * Math.sin(angle)));
                 agentIndex++;
             }
@@ -292,7 +292,7 @@ public class Game {
         return arena;
     }
     public Color getBackgroundColor(){
-        return new Color(0.7,0.7,0.7,1);
+        return new Color(0.8,0.8,0.8,1);
     }
     public int getRecordingDelta(){
         return recordingDelta;

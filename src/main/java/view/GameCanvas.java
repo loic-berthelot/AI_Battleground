@@ -10,6 +10,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 
 import java.util.Vector;
 
@@ -48,16 +49,21 @@ public class GameCanvas extends Canvas {
         for (int i = 0; i < agents.size(); i++) {
             agents.get(i).draw(graphicsContext, game);
         }
-        graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        Font font = Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 25);
+        graphicsContext.setFont(font);
         graphicsContext.setFill(Color.BLACK);
-        graphicsContext.fillText("Round "+Integer.toString(game.getRoundCount()), game.getScreenPosX(1)+10, game.getScreenPosY(-1)-250);
-        String text = "Frame "+Integer.toString(game.getFrameCount());
-        if (game.getFrameLimit() > 0) text += " / "+Integer.toString(game.getFrameLimit());
-        graphicsContext.fillText(text, game.getScreenPosX(1)+10, game.getScreenPosY(-1)-230);
+        graphicsContext.fillText("Round :  "+Integer.toString(game.getRoundCount()), game.getScreenPosX(1)+10, game.getScreenPosY(1)+20);
+        graphicsContext.fillText("Frame :  "+Integer.toString(game.getFrameCount()), game.getScreenPosX(1)+10, game.getScreenPosY(1)+45);
+        if(game.getFrameLimit() > 0){
+            Text text = new Text("Frame :  "+Integer.toString(game.getFrameLimit()));
+            text.setFont(font);
+            double shift = text.getLayoutBounds().getWidth();
+            graphicsContext.fillText(" / "+Integer.toString(game.getFrameLimit()), game.getScreenPosX(1)+10+shift, game.getScreenPosY(1)+45);
+        }
         graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 40));
         for (int i = 0; i < game.getTeamsNumber(); i++){
             graphicsContext.setFill(Game.getTeamColor(i));
-            graphicsContext.fillText(Integer.toString(game.getScore(i)), game.getCenterArenaX()*2.1+i%4*140, 40+50*(int)(i/4));
+            graphicsContext.fillText(Integer.toString(game.getScore(i)), game.getScreenPosX(1)+10+140.0*(i%4), game.getScreenPosY(-1)-330-50*(int)(i/4));
         }
         game.getGameHistory().draw(graphicsContext);
     }
