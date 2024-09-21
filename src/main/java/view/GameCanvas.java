@@ -63,7 +63,7 @@ public class GameCanvas extends Canvas {
         graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 40));
         for (int i = 0; i < game.getTeamsNumber(); i++){
             graphicsContext.setFill(Game.getTeamColor(i));
-            graphicsContext.fillText(Integer.toString(game.getScore(i)), game.getScreenPosX(1)+10+140.0*(i%4), game.getScreenPosY(-1)-330-50*(int)(i/4));
+            graphicsContext.fillText(Integer.toString(game.getScore(i)), game.getScreenPosX(1)+10+180.0*(i%4), game.getScreenPosY(-1)-330-50*(int)(i/4));
         }
         game.getGameHistory().draw(graphicsContext);
     }

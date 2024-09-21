@@ -27,7 +27,7 @@ public class NNdl4j {
                 .seed(seed)
                 .weightInit(WeightInit.XAVIER)
                 .updater(new Adam(learningRate))
-                .dropOut(0.3)
+                .dropOut(0.15)
                 .list()
                 .layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(numHidden)
                         .activation(Activation.SIGMOID)
@@ -36,7 +36,7 @@ public class NNdl4j {
                         .activation(Activation.SIGMOID)
                         .build())
                 .layer(2, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
-                        .activation(Activation.IDENTITY)
+                        .activation(Activation.SIGMOID)
                         .nIn(numHidden).nOut(numOutputs).build())
                 .build()
         );

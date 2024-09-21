@@ -11,37 +11,35 @@ public class GameHistory {
     private int scoresDepth;
     private int ratiosDepth;
     private Game game;
+    private int totalPoints;
+    private int[] totalTeamPoints;
     public GameHistory(Game game, int scoresDepth, int ratiosDepth) {
         this.game = game;
         this.scoresDepth = scoresDepth;
         this.ratiosDepth = ratiosDepth;
         scores = new Vector<>();
         ratios = new Vector<>();
-    }
-    public int getTotalPoints(){
-        int total = 0;
-        int teamsNumber = game.getTeamsNumber();
-        for (int[] score : scores) {
-            for (int i = 0; i < teamsNumber; i++) {
-                total += score[i];
-            }
-        }
-        return total;
+        totalPoints = 0;
+        totalTeamPoints = new int[game.getTeamsNumber()];
     }
     public void registerRatio(int[] score) {
         scores.add(0,score);
-        if (scores.size() > scoresDepth) {
-            scores.remove(scores.lastElement());
-        }
-        double teamPoints;
+        int teamsNumber = game.getTeamsNumber();
         double[] ratio = new double[game.getTeamsNumber()];
-        double totalPoints = (double) getTotalPoints();
-        for (int i = 0; i < game.getTeamsNumber(); i++) {
-            teamPoints = 0;
-            for (int[] s : scores) {
-                teamPoints += s[i];
+        for (int i = 0; i < teamsNumber; i++) {
+            totalPoints += score[i];
+            totalTeamPoints[i] += score[i];
+        }
+        if (scores.size() > scoresDepth && scoresDepth > 0) {
+            int[] lastScore = scores.lastElement();
+            for (int i = 0; i < teamsNumber; i++) {
+                totalPoints -= lastScore[i];
+                totalTeamPoints[i] -= lastScore[i];
             }
-            if(totalPoints > 0) ratio[i] = teamPoints/totalPoints;
+            scores.remove(lastScore);
+        }
+        for (int i = 0; i < teamsNumber; i++) {
+            if(totalPoints > 0) ratio[i] = totalTeamPoints[i]/(double)totalPoints;
             else ratio[i] = 0;
         }
         ratios.add(0, ratio);
@@ -63,9 +61,9 @@ public class GameHistory {
             double totalHeight;
             for (int j = 0; j < ratiosSize; j++) {
                 totalHeight = 0;
-                for (int i = 0; i < teamsNumber; i++) {
+                for (int i = teamsNumber-1; i >= 0; i--) {
                     graphicsContext.setFill(Game.getTeamColor(i));
-                    graphicsContext.fillRect(cornerX+(ratiosDepth-j-1)*width/((double) ratiosDepth), cornerY + totalHeight, 1.5*width / ((double) ratiosDepth), height*ratios.get(j)[i]);
+                    graphicsContext.fillRect(cornerX+(ratiosDepth-j-1)*width/((double) ratiosDepth), cornerY + totalHeight, 1+width / ((double) ratiosDepth), height*ratios.get(j)[i]);
                     totalHeight += height*ratios.get(j)[i];
                 }
             }

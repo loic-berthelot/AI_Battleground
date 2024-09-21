@@ -21,7 +21,8 @@ public class InputManager {
         addActionInput("MoveLeft2", LEFT);
         addActionInput("Turbo", SPACE);
         addActionInput("Pause", P);
-        addActionInput("Restart", R);
+        addActionInput("RestartRound", R);
+        addActionInput("RestartGame", I);
     }
     public static InputManager getInstance() {
         if (instance == null) instance = new InputManager();

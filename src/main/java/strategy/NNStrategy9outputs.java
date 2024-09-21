@@ -3,11 +3,11 @@ package strategy;
 import game.Agent;
 import game.Game;
 
-import java.util.ArrayList;
 import java.util.Random;
+import java.util.Vector;
 
 public class NNStrategy9outputs extends NNStrategy {
-    final private ArrayList<Integer> choices;
+    final private Vector<Integer> choices;
     private int scoreMethod;
     private int recordingInterval;
     public NNStrategy9outputs(Game game, Agent controlledAgent) {
@@ -22,10 +22,10 @@ public class NNStrategy9outputs extends NNStrategy {
         learningRateMultiplier = 0.99;
         nEpochs = 50;
         rewardIntensity = 1;
-        punishmentIntensity = -1;
+        punishmentIntensity = -0.1;
         recordingInterval = game.getRecordingDelta();
         intermediateLearn = false;
-        choices = new ArrayList<Integer>();
+        choices = new Vector<Integer>();
         scoreMethod = 0;
         Random random = new Random();
         neuralNetwork = new NNdl4j(learningRate, random.nextInt(10000), numInputs, numOutputs);
@@ -87,7 +87,7 @@ public class NNStrategy9outputs extends NNStrategy {
 
     @Override
     public void recordState() {
-        states.add(calculateState());
-        choices.add(calculateChoice());
+        states.add(0, calculateState());
+        choices.add(0, calculateChoice());
     }
 }

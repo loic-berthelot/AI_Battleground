@@ -3,6 +3,7 @@ package strategy;
 import game.Agent;
 import game.Game;
 import game.KillingPoint;
+import game.Position;
 
 import java.util.Vector;
 
@@ -21,15 +22,20 @@ public abstract class NNStrategy extends Strategy {
     protected double rewardIntensity;
     protected double punishmentIntensity;
     protected boolean intermediateLearn;
+    protected boolean symetricalLearning;
     protected Vector<double[]> states;
     public NNStrategy(Game game, Agent controlledAgent) {
         super(game);
-        numInputs = 2*(1+game.getKillingPointsNumber())+6;
+        numInputs = 2*(game.getAgentsNumber()+game.getKillingPointsNumber())+3;
         this.controlledAgent = controlledAgent;
+        symetricalLearning = false;
         states = new Vector<double[]>();
     }
     public static double distance(double x1, double y1, double x2, double y2) {
         return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+    }
+    public static double distance(Position p1, Position p2) {
+        return distance(p1.getX(), p1.getY(), p2.getX(), p2.getY());
     }
     public double invertValue(double val) {
         return 0.01/Math.max(val, 0.01);
@@ -42,15 +48,15 @@ public abstract class NNStrategy extends Strategy {
         double distDanger = 2;
         double distPrey = 2;
         double distAlly = 2;
+        double distCenter = 2;
+        double distBorder = 2;
         double dist = 0;
-
-        state[indexState] = controlledAgent.getPosX();
-        state[indexState+1] = controlledAgent.getPosY();
-        indexState += 2;
-        for (Agent agent : agents) {/*
-            state[indexState] = agent.getPosX();
-            state[indexState+1] = agent.getPosY();
-            indexState += 2;*/
+        for (Agent agent : agents) {
+            if (agent != controlledAgent) {
+                state[indexState] = distance(agent.getPosition(), controlledAgent.getPosition());
+                state[indexState+1] = 1-agent.getPosition().distanceToCenter()-Agent.getAgentRadius();
+                indexState += 2;
+            }
             if(agent != controlledAgent && agent.getTeam() == controlledAgent.getTeam()){
                 dist = distance(agent.getPosX(), agent.getPosY(), controlledAgent.getPosX(), controlledAgent.getPosY());
                 if (dist < distAlly) {
@@ -59,8 +65,8 @@ public abstract class NNStrategy extends Strategy {
             }
         }
         for (KillingPoint kp : killingPoints) {
-            state[indexState] = kp.getPosX();
-            state[indexState+1] = kp.getPosY();
+            state[indexState] = distance(kp.getPosition(), controlledAgent.getPosition());
+            state[indexState+1] = 1-kp.getPosition().distanceToCenter();
             indexState += 2;
             if (kp.getTeam() == controlledAgent.getTeam()) {
                 for (Agent enemy : agents) {
@@ -82,27 +88,67 @@ public abstract class NNStrategy extends Strategy {
                 }
             }
         }
+        distCenter = controlledAgent.getPosition().distanceToCenter();
+        distBorder = 1-distCenter;
         distDanger = Math.max(distDanger-Agent.getAgentRadius(), 0.001);
         distPrey = Math.max(distPrey-Agent.getAgentRadius(), 0.001);
         distAlly = Math.max(distAlly-Agent.getAgentRadius(), 0.001);
-        state[indexState] = game.getArena().hasCorners() ? 1 : 0;
-        state[indexState+1] = game.getArena().getInternalRadius();
-        state[indexState+2] = invertValue(distDanger);
-        state[indexState+3] = invertValue(distPrey);
-        state[indexState+4] = invertValue(distAlly);
-        state[indexState+5] = (game.getFrameLimit() - game.getFrameCount())/(double)game.getFrameLimit();
+        distCenter = Math.max(distCenter, 0.001);
+        distBorder = Math.max(distBorder-Agent.getAgentRadius(), 0.001);
+        state[indexState] = (game.getFrameLimit() - game.getFrameCount())/(double)game.getFrameLimit();
+        indexState++;
+        /*
+        state[indexState+1] = game.getArena().hasCorners() ? 1 : 0;
+        state[indexState+2] = game.getArena().getInternalRadius();
+        indexState += 2;
+        */
+        state[indexState] = distDanger;
+        state[indexState+1] = distPrey;
+        state[indexState+2] = distAlly;
+        state[indexState+3] = distBorder;
+        //state[indexState+4] = distBorder;
+        /*
+        state[indexState+6] = distDanger*distDanger;
+        state[indexState+7] = distPrey*distPrey;
+        state[indexState+8] = distAlly*distAlly;*/
         return state;
     }
 
+    public double[] invertState(double[] state, double xInvertion, double yInvertion) {
+        double[] result = new double[state.length];
+        for (int i = 0; i < 2*(game.getAgentsNumber()+game.getKillingPointsNumber()); i++) {
+            result[i] = state[i] * (i%2==0 ? xInvertion : yInvertion);
+        }
+        for(int i = 2*(1+game.getKillingPointsNumber()); i < state.length; i++){
+            result[i] = state[i];
+        }
+        return result;
+    }
     public double[] calculateFeatures(int firstState, int lastState){
         int indexFeatures = 0;
         double[] state;
-        double[] features = new double[(lastState-firstState+1)*numInputs];
-        for (int i = firstState; i <= lastState; i++) {
-            state = states.get(i);
-            for (int j = 0; j < numInputs; j++) {
-                features[indexFeatures] = state[j];
-                indexFeatures++;
+        double[] features;
+        if (symetricalLearning) {
+            features = new double[4 * (lastState - firstState + 1) * numInputs];
+            for (int x = -1; x <= 1; x += 2) {
+                for (int y = -1; y <= 1; y += 2) {
+                    for (int i = firstState; i <= lastState; i++) {
+                        state = invertState(states.get(i), x, y);
+                        for (int j = 0; j < numInputs; j++) {
+                            features[indexFeatures] = state[j];
+                            indexFeatures++;
+                        }
+                    }
+                }
+            }
+        } else {
+            features = new double[(lastState - firstState + 1) * numInputs];
+            for (int i = firstState; i <= lastState; i++) {
+                state = states.get(i);
+                for (int j = 0; j < numInputs; j++) {
+                    features[indexFeatures] = state[j];
+                    indexFeatures++;
+                }
             }
         }
         return features;

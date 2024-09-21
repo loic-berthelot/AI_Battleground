@@ -11,19 +11,22 @@ public class NNStrategy1output extends NNStrategy {
         super(game, controlledAgent);
         this.controlledAgent = controlledAgent;
         numOutputs = 1;
-        epsilon = 0.8;
-        epsilonMultiplier = 0.98 ;
-        gamma = 0.9;
-        maxHistoryDepth = 40;
-        learningRate = 0.003;
-        learningRateMultiplier = 1;
-        nEpochs = 3;
-        rewardIntensity = 1;
-        punishmentIntensity = -1;
-        intermediateLearn = false;
         scoreMethod = 0;
+        intermediateLearn = false;
         Random random = new Random();
         neuralNetwork = new NNdl4j(learningRate,random.nextInt(10000), numInputs, numOutputs);
+
+        gamma = 0.98;
+        maxHistoryDepth = 12;
+
+        epsilon = 0.8;
+        epsilonMultiplier = 0.97 ;
+        symetricalLearning = false;
+        learningRate = 0.05;
+        learningRateMultiplier = 1;
+        nEpochs = 4;
+        rewardIntensity = 1;
+        punishmentIntensity = -1;
     }
     private double calculateScore(){
         if (scoreMethod == 0) {
@@ -50,18 +53,22 @@ public class NNStrategy1output extends NNStrategy {
         }
     }
     @Override
-    public void learn(double reward){
+    public void learn(double baseReward){
         int size = states.size();
         int firstState = 0;
         int lastState = Math.min(size-1, maxHistoryDepth);
         double[] statesFeatures = calculateFeatures(firstState, lastState);
         int featuresSize = lastState-firstState+1;
-        double[] rewards = new double[featuresSize];
-        for (int i = firstState; i < featuresSize; i++) {
-            rewards[i] = reward;
-            reward *= gamma;
+        int variationsNumber = (symetricalLearning ? 4 : 1);
+        double[] rewards = new double[variationsNumber*featuresSize];
+        for (int j = 0; j < variationsNumber; j++) {
+            double reward = baseReward;
+            for (int i = firstState; i < featuresSize; i++) {
+                rewards[j*featuresSize+i] = reward;
+                reward *= gamma;
+            }
         }
-        neuralNetwork.fit(statesFeatures, rewards, featuresSize, nEpochs);
+        neuralNetwork.fit(statesFeatures, rewards, variationsNumber*featuresSize, nEpochs);
         epsilon*=epsilonMultiplier;
         learningRate *= learningRateMultiplier;
         neuralNetwork.setLearningRate(learningRate);

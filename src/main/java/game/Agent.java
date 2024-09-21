@@ -23,7 +23,6 @@ public class Agent extends Particle {
     private double orderY;
     private boolean alive;
     private int killCount;
-    static int globalId = 1;
     private int id;
     private ArrayList<Position> positionsHistory;
     private double orientation;
@@ -36,7 +35,7 @@ public class Agent extends Particle {
         this.team = team;
         this.group = group;
         strategy = new NullStrategy();
-        id = globalId++;
+        id = game.getCurrentAgentId();
         eyes = new ArrayList<>();
         eyes.add(new Eye(this, -0.6));
         eyes.add(new Eye(this, 0.6));

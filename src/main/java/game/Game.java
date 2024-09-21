@@ -10,7 +10,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import strategy.*;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Vector;
@@ -21,21 +20,23 @@ public class Game {
     private Vector<Light> lights;
     final private static Vector<Color> teamColors;
     private Vector<Integer> scores;
-    final private int teamsNumber;
-    final private int teamSize;
+    private int teamsNumber;
+    private int teamSize;
     private boolean turboMode;
     private boolean paused;
-    final private InputBuffer turboInputBuffer;
-    final private InputBuffer pausedInputBuffer;
-    final private InputBuffer restartInputBuffer;
-    final private double speed;
+    private InputBuffer turboInputBuffer;
+    private InputBuffer pausedInputBuffer;
+    private InputBuffer restartRoundInputBuffer;
+    private InputBuffer restartGameInputBuffer;
+    private double speed;
     private int frameCount;
     private int roundCount;
-    final private int frameLimit;
-    final private int recordingDelta;
-    final private int decisionDelta;
+    private int frameLimit;
+    private int recordingDelta;
+    private int decisionDelta;
     private GameHistory gameHistory;
     private Arena arena;
+    private static int currentAgentId;
     static {
         teamColors = new Vector<>();
         teamColors.add(Color.BLUE);
@@ -48,6 +49,15 @@ public class Game {
         teamColors.add(Color.ORANGE);
     }
     public Game() {
+        initGame();
+        turboMode = false;
+        turboInputBuffer = new InputBuffer("Turbo");
+        pausedInputBuffer = new InputBuffer("Pause");
+        restartRoundInputBuffer = new InputBuffer("RestartRound");
+        restartGameInputBuffer = new InputBuffer("RestartGame");
+    }
+    public void initGame(){
+        currentAgentId = 1;
         roundCount = 0;
         teamsNumber = 2;
         teamSize = 2;
@@ -59,49 +69,43 @@ public class Game {
         frameLimit = 1800;
         scores = new Vector<>();
         arena = new TorusArena(0.25);
-        gameHistory = new GameHistory(this, 100, 600);
+        gameHistory = new GameHistory(this, 500, 300);
         //arena = new SquareArena();
         buildAgents();
         buildKillingPoints();
         giveStrategies();
-        init();
+        initRound();
         for (int i = 0; i < teamsNumber; i++) {
             scores.add(0);
         }
-        turboMode = false;
-        turboInputBuffer = new InputBuffer("Turbo");
-        pausedInputBuffer = new InputBuffer("Pause");
-        restartInputBuffer = new InputBuffer("Restart");
     }
-
     public void giveStrategies(){
         int agentIndex = 0;
         Agent a;
         for (int i = 0; i < teamsNumber; i++) {
             for (int j = 0; j < teamSize; j++) {
                 a = agents.get(agentIndex);
-                if (i == -1) {
+                if (i >= 0) {
                     //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
                     //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                    //a.setStrategy(new NNStrategy9outputs(this, a));
-                    a.setStrategy(new RuleBasedStrategy(this, 0));
+                    //a.setStrategy(new NNStrategy9outputs(this, a)
+                    a.setStrategy(new NNStrategy1output(this, a));
                 } else {
-                    if (j==0) a.setStrategy(new NNStrategy9outputs(this, a));
-                    else a.setStrategy(agents.get(agentIndex-1).getStrategy());
+                    a.setStrategy(new NNStrategy1output(this, a));
                     //a.setStrategy(new RuleBasedStrategy(this, 0));
                 }
                 agentIndex++;
             }
         }
     }
-    public void init(){
+    public void initRound(){
         roundCount++;
         frameCount = 0;
         lights = new Vector<>();
         Random random = new Random();
         double angleShift = random.nextDouble(2*Math.PI);
         int agentIndex = 0;
-        switch (random.nextInt(3)) {
+        switch (random.nextInt(1)) {
             case 0:
                 arena = new CircularArena();
                 break;
@@ -155,12 +159,6 @@ public class Game {
         for (KillingPoint kp : killingPoints) {
             kp.evolve(this);
         }
-        if (frameLimit >= 0 && frameCount>= frameLimit){
-            for (int i = 0; i < agents.size(); i++) {
-                agents.get(i).getStrategy().learn( 3*agents.get(i).getStrategy().getPunishmentIntensity());
-            }
-            init();
-        }
         if (frameCount%10==0) {
             for (int i = 0; i < agents.size(); i++) {
                 lights.add(new Light(new Position(agents.get(i).getPosition()), getTeamColor(agents.get(i).getTeam()), Agent.getAgentRadius()));
@@ -190,6 +188,14 @@ public class Game {
                 scores.set(i, scores.get(i)+1);
             }
         }
+        if (frameLimit >= 0 && frameCount>= frameLimit){
+            mustReset = true;/*
+            for (int i = 0; i < agents.size(); i++) {
+                Strategy strat = agents.get(i).getStrategy();
+                strat.learn(strat.getPunishmentIntensity());
+                gameHistory.registerRatio(scoreIncrease);
+            }*/
+        }
         if (mustReset) {
             double reward;
             for (int i = 0; i < agents.size(); i++) {
@@ -198,14 +204,14 @@ public class Game {
                 strat.learn(reward);
                 gameHistory.registerRatio(scoreIncrease);
             }
-            init();
+            initRound();
         }
     }
     public void buildAgents(){
         agents = new Vector<>();
         for (int i = 0; i < teamsNumber; i++) {
             for (int j = 0; j < teamSize; j++) {
-                Agent a = new Agent(this, i, (j < 2)?0 :1);
+                Agent a = new Agent(this, i, (j < 3)?0 :1);
                 agents.add(a);
             }
         }
@@ -243,7 +249,8 @@ public class Game {
     public void executeCommands() {
         if (turboInputBuffer.read()) turboMode = !turboMode;
         if (pausedInputBuffer.read()) paused = !paused;
-        if (restartInputBuffer.read()) init();
+        if (restartRoundInputBuffer.read()) initRound();
+        if (restartGameInputBuffer.read()) initGame();
     }
     public int getArenaRadius() {
         Rectangle2D screenSize = Screen.getPrimary().getVisualBounds();
@@ -302,5 +309,8 @@ public class Game {
     }
     public GameHistory getGameHistory(){
         return gameHistory;
+    }
+    public int getCurrentAgentId(){
+        return currentAgentId++;
     }
 }
