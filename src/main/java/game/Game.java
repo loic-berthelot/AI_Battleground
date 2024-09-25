@@ -62,8 +62,8 @@ public class Game {
         teamsNumber = 2;
         teamSize = 2;
         speed = 0.005;
-        decisionDelta = 25;
-        recordingDelta = 20;
+        decisionDelta = 5;
+        recordingDelta = 30;
         Agent.setAgentRadius(0.08);
         Agent.setSpeed(speed);
         frameLimit = 1800;
@@ -88,11 +88,10 @@ public class Game {
                 if (i >= 0) {
                     //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
                     //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                    //a.setStrategy(new NNStrategy9outputs(this, a)
                     a.setStrategy(new NNStrategy1output(this, a));
                 } else {
-                    a.setStrategy(new NNStrategy1output(this, a));
-                    //a.setStrategy(new RuleBasedStrategy(this, 0));
+                    //a.setStrategy(new NNStrategy1output(this, a));
+                    a.setStrategy(new RuleBasedStrategy(this, 0));
                 }
                 agentIndex++;
             }
@@ -149,13 +148,14 @@ public class Game {
                 agent = agents.get(i);
                 strat = agent.getStrategy();
                 if (strat.getIntermediateLearn()) {
-                    strat.learn(0.2*strat.getPunishmentIntensity());
+                    strat.learn(strat.getPunishmentIntensity(), 1);
                 }
             }
         }
         for (Agent agent : agents) {
             agent.evolve();
         }
+        manageCollisions();
         for (KillingPoint kp : killingPoints) {
             kp.evolve(this);
         }
@@ -192,19 +192,56 @@ public class Game {
             mustReset = true;/*
             for (int i = 0; i < agents.size(); i++) {
                 Strategy strat = agents.get(i).getStrategy();
-                strat.learn(strat.getPunishmentIntensity());
-                gameHistory.registerRatio(scoreIncrease);
+                strat.learn(strat.getPunishmentIntensity(), 5);
             }*/
         }
         if (mustReset) {
             double reward;
             for (int i = 0; i < agents.size(); i++) {
                 Strategy strat = agents.get(i).getStrategy();
+                /*
                 reward = scoreIncrease[agents.get(i).getTeam()] > 0 ? strat.getRewardIntensity() : strat.getPunishmentIntensity();
                 strat.learn(reward);
-                gameHistory.registerRatio(scoreIncrease);
+                */
+                if (scoreIncrease[agents.get(i).getTeam()] > 0) {
+                    strat.learn(strat.getRewardIntensity(), 10);
+                } else {
+                    strat.learn(strat.getPunishmentIntensity(), 1);
+                }
             }
+            gameHistory.registerRatio(scoreIncrease);
             initRound();
+        }
+    }
+    public double distance(Position p1, Position p2) {
+        double dx = p2.getX() - p1.getX();
+        double dy = p2.getY() - p1.getY();
+        return Math.sqrt(dx*dx+dy*dy);
+    }
+    public void manageCollisions(){
+        double dist, angle;
+        Agent a1;
+        int iterations = 3;
+        for (int j = 0; j < iterations; j++) {
+            double[] shifts = new double[2*agents.size()];
+            for (int i = 0; i < agents.size(); i++) {
+                a1 = agents.get(i);
+                for (Agent a2 : agents) {
+                    if (a1 != a2) {
+                        dist = Math.max(Agent.getAgentRadius() - 0.5 * distance(a1.getPosition(), a2.getPosition()), 0);
+                        angle = Math.atan2(a1.getPosY() - a2.getPosY(), a1.getPosX() - a2.getPosX());
+                        shifts[2 * i] += dist * Math.cos(angle);
+                        shifts[2 * i + 1] += dist * Math.sin(angle);
+                    }
+                }
+            }
+            Position pos;
+            for (int i = 0; i < agents.size(); i++) {
+                pos = agents.get(i).getPosition();
+                pos.addX(shifts[2*i]);
+                pos.addY(shifts[2*i+1]);
+                arena.replaceAgent(agents.get(i));
+            }
         }
     }
     public void buildAgents(){

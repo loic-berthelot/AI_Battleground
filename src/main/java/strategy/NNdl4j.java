@@ -10,6 +10,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
+import org.nd4j.linalg.learning.regularization.Regularization;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import java.util.Random;
@@ -22,12 +23,13 @@ public class NNdl4j {
     public NNdl4j(double learningRate, int seed, int numInputs, int numOutputs){
         this.numInputs = numInputs;
         this.numOutputs = numOutputs;
-        int numHidden = 16;
+        int numHidden = 8;
         network = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .weightInit(WeightInit.XAVIER)
                 .updater(new Adam(learningRate))
-                .dropOut(0.15)
+                .dropOut(0.3)
+                .l2(1e-2)
                 .list()
                 .layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(numHidden)
                         .activation(Activation.SIGMOID)

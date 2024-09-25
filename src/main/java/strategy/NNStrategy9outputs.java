@@ -20,7 +20,6 @@ public class NNStrategy9outputs extends NNStrategy {
         maxHistoryDepth = 30;
         learningRate = 0.05;
         learningRateMultiplier = 0.99;
-        nEpochs = 50;
         rewardIntensity = 1;
         punishmentIntensity = -0.1;
         recordingInterval = game.getRecordingDelta();
@@ -55,7 +54,7 @@ public class NNStrategy9outputs extends NNStrategy {
     }
 
     @Override
-    public void learn(double reward) {
+    public void learn(double reward, int nEpochs) {
         int size = states.size();
         int firstState = 0;
         int lastState = Math.min(size - 1, maxHistoryDepth);

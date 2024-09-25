@@ -13,7 +13,7 @@ public class RuleBasedStrategy extends Strategy{
     public RuleBasedStrategy(Game game, int heuristic) {
         super(game);
         this.heuristic = heuristic;
-        epsilon = 0.5;
+        epsilon = 1;
         epsilonCoefficient = 0.98;
     }
     public double heuristicResult(Agent agent) {
@@ -45,7 +45,7 @@ public class RuleBasedStrategy extends Strategy{
         this.epsilon = epsilon;
     }
     @Override
-    public void learn(double reward){
+    public void learn(double reward, int nEpochs){
         epsilon *= epsilonCoefficient;
     }
 }

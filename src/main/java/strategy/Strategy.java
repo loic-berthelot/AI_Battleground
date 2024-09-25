@@ -17,12 +17,12 @@ public abstract class Strategy {
     }
     public abstract void decide(Agent agent);
     public double getRewardIntensity() {
-        return 0;
+        return 1;
     }
     public double getPunishmentIntensity() {
         return 0;
     }
-    public void learn(double reward){
+    public void learn(double reward, int nEpochs){
 
     }
     public boolean getIntermediateLearn(){

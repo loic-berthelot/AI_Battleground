@@ -5,6 +5,7 @@ import game.Game;
 import game.KillingPoint;
 import game.Position;
 
+import java.util.Random;
 import java.util.Vector;
 
 public abstract class NNStrategy extends Strategy {
@@ -18,17 +19,14 @@ public abstract class NNStrategy extends Strategy {
     protected int maxHistoryDepth;
     protected double learningRate;
     protected double learningRateMultiplier;
-    protected int nEpochs;
     protected double rewardIntensity;
     protected double punishmentIntensity;
     protected boolean intermediateLearn;
-    protected boolean symetricalLearning;
     protected Vector<double[]> states;
     public NNStrategy(Game game, Agent controlledAgent) {
         super(game);
-        numInputs = 2*(game.getAgentsNumber()+game.getKillingPointsNumber())+3;
+        numInputs = (game.getAgentsNumber())+game.getKillingPointsNumber()+4;
         this.controlledAgent = controlledAgent;
-        symetricalLearning = false;
         states = new Vector<double[]>();
     }
     public static double distance(double x1, double y1, double x2, double y2) {
@@ -54,8 +52,8 @@ public abstract class NNStrategy extends Strategy {
         for (Agent agent : agents) {
             if (agent != controlledAgent) {
                 state[indexState] = distance(agent.getPosition(), controlledAgent.getPosition());
-                state[indexState+1] = 1-agent.getPosition().distanceToCenter()-Agent.getAgentRadius();
-                indexState += 2;
+                //state[indexState+1] = 1-agent.getPosition().distanceToCenter()-Agent.getAgentRadius();
+                indexState ++;
             }
             if(agent != controlledAgent && agent.getTeam() == controlledAgent.getTeam()){
                 dist = distance(agent.getPosX(), agent.getPosY(), controlledAgent.getPosX(), controlledAgent.getPosY());
@@ -66,8 +64,8 @@ public abstract class NNStrategy extends Strategy {
         }
         for (KillingPoint kp : killingPoints) {
             state[indexState] = distance(kp.getPosition(), controlledAgent.getPosition());
-            state[indexState+1] = 1-kp.getPosition().distanceToCenter();
-            indexState += 2;
+            //state[indexState+1] = 1-kp.getPosition().distanceToCenter();
+            indexState ++;//= 2;
             if (kp.getTeam() == controlledAgent.getTeam()) {
                 for (Agent enemy : agents) {
                     if (enemy.getTeam() != controlledAgent.getTeam()) {
@@ -127,28 +125,12 @@ public abstract class NNStrategy extends Strategy {
     public double[] calculateFeatures(int firstState, int lastState){
         int indexFeatures = 0;
         double[] state;
-        double[] features;
-        if (symetricalLearning) {
-            features = new double[4 * (lastState - firstState + 1) * numInputs];
-            for (int x = -1; x <= 1; x += 2) {
-                for (int y = -1; y <= 1; y += 2) {
-                    for (int i = firstState; i <= lastState; i++) {
-                        state = invertState(states.get(i), x, y);
-                        for (int j = 0; j < numInputs; j++) {
-                            features[indexFeatures] = state[j];
-                            indexFeatures++;
-                        }
-                    }
-                }
-            }
-        } else {
-            features = new double[(lastState - firstState + 1) * numInputs];
-            for (int i = firstState; i <= lastState; i++) {
-                state = states.get(i);
-                for (int j = 0; j < numInputs; j++) {
-                    features[indexFeatures] = state[j];
-                    indexFeatures++;
-                }
+        double[] features = new double[(lastState - firstState + 1) * numInputs];
+        for (int i = firstState; i <= lastState; i++) {
+            state = states.get(i);
+            for (int j = 0; j < numInputs; j++) {
+                features[indexFeatures] = state[j];
+                indexFeatures++;
             }
         }
         return features;
