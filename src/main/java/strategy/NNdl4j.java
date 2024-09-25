@@ -10,10 +10,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
-import org.nd4j.linalg.learning.regularization.Regularization;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
-
-import java.util.Random;
 
 public class NNdl4j {
     private final MultiLayerNetwork network;
@@ -23,7 +20,7 @@ public class NNdl4j {
     public NNdl4j(double learningRate, int seed, int numInputs, int numOutputs){
         this.numInputs = numInputs;
         this.numOutputs = numOutputs;
-        int numHidden = 8;
+        int numHidden = 16;
         network = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .weightInit(WeightInit.XAVIER)
@@ -37,19 +34,22 @@ public class NNdl4j {
                 .layer(1, new DenseLayer.Builder().nIn(numHidden).nOut(numHidden)
                         .activation(Activation.SIGMOID)
                         .build())
-                .layer(2, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
+                .layer(2, new DenseLayer.Builder().nIn(numHidden).nOut(numHidden)
+                        .activation(Activation.SIGMOID)
+                        .build())
+                .layer(3, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
                         .activation(Activation.SIGMOID)
                         .nIn(numHidden).nOut(numOutputs).build())
                 .build()
         );
         network.init();
     }
-    public void fit(double[] inputs, double[] outputs, int size, int nEpochs)
+    public void fit(LearningBatch learningBatch)
     {
-        INDArray indinputs = Nd4j.create(inputs, new int[]{size, numInputs});
-        INDArray indoutputs = Nd4j.create(outputs, new int[]{size, numOutputs});
+        INDArray indinputs = Nd4j.create(learningBatch.getStatesFeatures(), new int[]{learningBatch.getSize(), numInputs});
+        INDArray indoutputs = Nd4j.create(learningBatch.getRewards(), new int[]{learningBatch.getSize(), numOutputs});
         DataSet dataset = new DataSet(indinputs, indoutputs);
-        for( int i=0; i<nEpochs; i++ ){
+        for(int i = 0; i<learningBatch.getEpochsNumber(); i++ ){
             network.fit(dataset);
         }
     }

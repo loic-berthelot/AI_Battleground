@@ -6,22 +6,24 @@ import game.Game;
 import java.util.Random;
 import java.util.Vector;
 
-public class NNStrategy9outputs extends NNStrategy {
+public class NNStrategy9out extends NNStrategy {
     final private Vector<Integer> choices;
     private int scoreMethod;
     private int recordingInterval;
-    public NNStrategy9outputs(Game game, Agent controlledAgent) {
+    public NNStrategy9out(Game game, Agent controlledAgent) {
         super(game, controlledAgent);
         numInputs = 2 * (game.getAgentsNumber() + game.getTeamsNumber()) + 6;
         numOutputs = 9;
+
         epsilon = 0.8;
         epsilonMultiplier = 0.95;
-        gamma = 0.7;
-        maxHistoryDepth = 30;
+        gamma = 1;
+        maxHistoryDepth = 12;
+
         learningRate = 0.05;
         learningRateMultiplier = 0.99;
         rewardIntensity = 1;
-        punishmentIntensity = -0.1;
+        punishmentIntensity = 0;
         recordingInterval = game.getRecordingDelta();
         intermediateLearn = false;
         choices = new Vector<Integer>();
@@ -54,18 +56,21 @@ public class NNStrategy9outputs extends NNStrategy {
     }
 
     @Override
-    public void learn(double reward, int nEpochs) {
+    public void learn(double reward, int epochsNumber) {
         int size = states.size();
-        int firstState = 0;
-        int lastState = Math.min(size - 1, maxHistoryDepth);
-        double[] statesFeatures = calculateFeatures(firstState, lastState);
-        int featuresSize = lastState + 1;
-        double[] rewards = new double[featuresSize*9];
-        for (int i = firstState; i < featuresSize; i++) {
+        double[] statesFeatures = calculateFeatures();
+        double[] rewards = new double[size*9];
+        for (int i = 0; i < size; i++) {
             int choice = choices.get(i);
             rewards[9*i+choice] = reward;
         }
-        neuralNetwork.fit(statesFeatures, rewards, featuresSize, nEpochs);
+        learningHistory.add(new LearningBatch(statesFeatures, rewards, size, epochsNumber));
+        if (learningHistory.size() > learningHistoryDepth) {
+            for(LearningBatch batch : learningHistory){
+                neuralNetwork.fit(batch);
+            }
+            learningHistory.clear();
+        }
         epsilon *= epsilonMultiplier;
         learningRate *= learningRateMultiplier;
         neuralNetwork.setLearningRate(learningRate);
@@ -86,7 +91,8 @@ public class NNStrategy9outputs extends NNStrategy {
 
     @Override
     public void recordState() {
-        states.add(0, calculateState());
+        super.recordState();
         choices.add(0, calculateChoice());
+        if (choices.size() > maxHistoryDepth) choices.remove(choices.lastElement());
     }
 }

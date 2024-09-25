@@ -66,7 +66,7 @@ public class Game {
         recordingDelta = 30;
         Agent.setAgentRadius(0.08);
         Agent.setSpeed(speed);
-        frameLimit = 1800;
+        frameLimit = 2000;
         scores = new Vector<>();
         arena = new TorusArena(0.25);
         gameHistory = new GameHistory(this, 500, 300);
@@ -85,10 +85,10 @@ public class Game {
         for (int i = 0; i < teamsNumber; i++) {
             for (int j = 0; j < teamSize; j++) {
                 a = agents.get(agentIndex);
-                if (i >= 0) {
+                if (i == 0) {
                     //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
                     //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                    a.setStrategy(new NNStrategy1output(this, a));
+                    a.setStrategy(new NNStrategy1out(this, a));
                 } else {
                     //a.setStrategy(new NNStrategy1output(this, a));
                     a.setStrategy(new RuleBasedStrategy(this, 0));
@@ -133,7 +133,6 @@ public class Game {
     public void evolve() {
         if (frameCount%recordingDelta==0) {
             for (Agent a : agents) {
-                a.discardStates();
                 a.recordState();
             };
         }
@@ -156,6 +155,9 @@ public class Game {
             agent.evolve();
         }
         manageCollisions();
+        for (Agent a : agents) {
+            a.updateGraphicalPosition();
+        }
         for (KillingPoint kp : killingPoints) {
             kp.evolve(this);
         }
@@ -248,7 +250,7 @@ public class Game {
         agents = new Vector<>();
         for (int i = 0; i < teamsNumber; i++) {
             for (int j = 0; j < teamSize; j++) {
-                Agent a = new Agent(this, i, (j < 3)?0 :1);
+                Agent a = new Agent(this, i, 0);
                 agents.add(a);
             }
         }

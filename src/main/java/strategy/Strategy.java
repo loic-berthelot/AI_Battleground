@@ -22,7 +22,7 @@ public abstract class Strategy {
     public double getPunishmentIntensity() {
         return 0;
     }
-    public void learn(double reward, int nEpochs){
+    public void learn(double reward, int epochsNumber){
 
     }
     public boolean getIntermediateLearn(){

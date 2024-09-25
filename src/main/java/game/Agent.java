@@ -94,7 +94,6 @@ public class Agent extends Particle {
     public void evolve(){
         move(orderX, orderY);
         adjustOrientation();
-        updateGraphicalPosition();
         positionsHistory.add(new Position(position));
         if (orderX != 0 || orderY != 0) {
             targetOrientation = (Math.atan2(orderY, orderX)+2*Math.PI)%(2*Math.PI);

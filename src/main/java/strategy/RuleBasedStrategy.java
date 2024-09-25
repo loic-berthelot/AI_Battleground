@@ -13,12 +13,16 @@ public class RuleBasedStrategy extends Strategy{
     public RuleBasedStrategy(Game game, int heuristic) {
         super(game);
         this.heuristic = heuristic;
-        epsilon = 1;
-        epsilonCoefficient = 0.98;
+        epsilon = 0;
+        epsilonCoefficient = 1;
     }
     public double heuristicResult(Agent agent) {
         switch(heuristic) {
             case 0 :
+                return invertDistanceSumHeuristic(agent, false, -0.075);
+            case 1 :
+                return invertDistanceSumHeuristic(agent, false, -0.05);
+            case 2 :
                 return invertDistanceSumHeuristic(agent, true, 0.012);
             default :
                 return invertDistanceSumHeuristic(agent, false,-0.01);
