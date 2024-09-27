@@ -37,6 +37,7 @@ public class Game {
     private GameHistory gameHistory;
     private Arena arena;
     private static int currentAgentId;
+    private boolean[] lastWinners;
     static {
         teamColors = new Vector<>();
         teamColors.add(Color.BLUE);
@@ -78,6 +79,7 @@ public class Game {
         for (int i = 0; i < teamsNumber; i++) {
             scores.add(0);
         }
+        lastWinners = new boolean[teamsNumber];
     }
     public void giveStrategies(){
         int agentIndex = 0;
@@ -147,7 +149,7 @@ public class Game {
                 agent = agents.get(i);
                 strat = agent.getStrategy();
                 if (strat.getIntermediateLearn()) {
-                    strat.learn(strat.getPunishmentIntensity(), 1);
+                    strat.learn(false, 1);
                 }
             }
         }
@@ -206,10 +208,13 @@ public class Game {
                 strat.learn(reward);
                 */
                 if (scoreIncrease[agents.get(i).getTeam()] > 0) {
-                    strat.learn(strat.getRewardIntensity(), 10);
+                    strat.learn(true, 10);
                 } else {
-                    strat.learn(strat.getPunishmentIntensity(), 1);
+                    strat.learn(false, 1);
                 }
+            }
+            for (int i = 0; i < teamsNumber; i++) {
+                lastWinners[i] = scoreIncrease[i] > 0;
             }
             gameHistory.registerRatio(scoreIncrease);
             initRound();
@@ -266,6 +271,9 @@ public class Game {
                 if (agent1.getTeam() == agent2.getTeam() && agent1.getGroup() == agent2.getGroup()) killingPoints.add(new KillingPoint(agent1, agent2));
             }
         }
+    }
+    public boolean isLastWinner(int i){
+        return lastWinners[i];
     }
     public int getAgentsNumber(){
         return agents.size();

@@ -56,10 +56,11 @@ public class NNStrategy9out extends NNStrategy {
     }
 
     @Override
-    public void learn(double reward, int epochsNumber) {
+    public void learn(boolean victory, int epochsNumber) {
         int size = states.size();
         double[] statesFeatures = calculateFeatures();
         double[] rewards = new double[size*9];
+        double reward = victory ? rewardIntensity : punishmentIntensity;
         for (int i = 0; i < size; i++) {
             int choice = choices.get(i);
             rewards[9*i+choice] = reward;

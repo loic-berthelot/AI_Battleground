@@ -60,10 +60,22 @@ public class GameCanvas extends Canvas {
             double shift = text.getLayoutBounds().getWidth();
             graphicsContext.fillText(" / "+Integer.toString(game.getFrameLimit()), game.getScreenPosX(1)+10+shift, game.getScreenPosY(1)+45);
         }
-        graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 40));
+        font = Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 40);
+        graphicsContext.setFont(font);
+        final int margin = 7;
+        final double cornerX = game.getScreenPosX(1) + 40;
+        final double cornerY = game.getScreenPosY(-1)-675;
         for (int i = 0; i < game.getTeamsNumber(); i++){
+            final double shiftX = 180.0 * (i % 4);
+            final double shiftY = -55*(int)(i/4);
+            if (game.isLastWinner(i)) {
+                Text text = new Text(Integer.toString(game.getScore(i)));
+                text.setFont(font);
+                graphicsContext.setFill(new Color(1, 1, 1, 0.5));
+                graphicsContext.fillOval(cornerX + shiftX - margin, cornerY + shiftY - margin, text.getLayoutBounds().getWidth() + 2 * margin, text.getLayoutBounds().getHeight() + 2 * margin);
+            }
             graphicsContext.setFill(Game.getTeamColor(i));
-            graphicsContext.fillText(Integer.toString(game.getScore(i)), game.getScreenPosX(1)+10+180.0*(i%4), game.getScreenPosY(-1)-330-50*(int)(i/4));
+            graphicsContext.fillText(Integer.toString(game.getScore(i)), cornerX+shiftX, cornerY+40 + shiftY);
         }
         game.getGameHistory().draw(graphicsContext);
     }

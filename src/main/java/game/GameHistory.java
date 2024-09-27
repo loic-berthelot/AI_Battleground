@@ -50,7 +50,7 @@ public class GameHistory {
     public void draw(GraphicsContext graphicsContext) {
         synchronized (ratios) {
             final double width = 900;
-            final double height = 300;
+            final double height = 600;
             final int border = 4;
             final double cornerX = game.getScreenPosX(1)+10+border;
             final double cornerY = game.getScreenPosY(-1)-height-border;

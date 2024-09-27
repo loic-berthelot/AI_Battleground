@@ -49,7 +49,7 @@ public class RuleBasedStrategy extends Strategy{
         this.epsilon = epsilon;
     }
     @Override
-    public void learn(double reward, int nEpochs){
+    public void learn(boolean victory, int nEpochs){
         epsilon *= epsilonCoefficient;
     }
 }

@@ -23,11 +23,11 @@ public class NNStrategy1out extends NNStrategy {
 
         epsilon = 1;
         epsilonMultiplier = 0.98;
-        learningRate = 0.01;
+        learningRate = 0.001;
         learningRateMultiplier = 1;
         rewardIntensity = 1;
         punishmentIntensity = -1;
-        learningHistoryDepth = 10;
+        learningHistoryDepth = 50;
     }
     private double calculateScore(){
         if (scoreMethod == 0) {
@@ -54,11 +54,11 @@ public class NNStrategy1out extends NNStrategy {
         }
     }
     @Override
-    public void learn(double baseReward, int epochsNumber){
+    public void learn(boolean victory, int epochsNumber){
         int size = states.size();
         double[] statesFeatures = calculateFeatures();
         double[] rewards = new double[size];
-        double reward = baseReward;
+        double reward = victory ? rewardIntensity : punishmentIntensity;
         for (int i = 0; i < size; i++) {
             rewards[i] = reward;
             reward = gamma*(reward-0.5)+0.5;
@@ -72,7 +72,7 @@ public class NNStrategy1out extends NNStrategy {
         }
         epsilon*=epsilonMultiplier;
         if (learningRateMultiplier != 1) {
-            learningRate *= learningRateMultiplier;
+            learningRate = learningRateMultiplier*(learningRate-0.5)+0.5;
             neuralNetwork.setLearningRate(learningRate);
         }
     }
