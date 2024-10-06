@@ -43,7 +43,7 @@ public class Game {
         teamColors.add(Color.BLUE);
         teamColors.add(Color.RED);
         teamColors.add(Color.GREEN);
-        teamColors.add(Color.YELLOW);
+        teamColors.add(Color.YELLOW.deriveColor(0,1,0.9,1));
         teamColors.add(Color.OLIVE);
         teamColors.add(Color.PURPLE);
         teamColors.add(Color.AQUAMARINE);
@@ -63,14 +63,14 @@ public class Game {
         teamsNumber = 2;
         teamSize = 2;
         speed = 0.005;
-        decisionDelta = 5;
-        recordingDelta = 30;
+        decisionDelta = 20;
+        recordingDelta = 20;
         Agent.setAgentRadius(0.08);
         Agent.setSpeed(speed);
         frameLimit = 2000;
         scores = new Vector<>();
         arena = new TorusArena(0.25);
-        gameHistory = new GameHistory(this, 500, 300);
+        gameHistory = new GameHistory(this, 100, 300);
         //arena = new SquareArena();
         buildAgents();
         buildKillingPoints();
@@ -91,9 +91,10 @@ public class Game {
                     //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
                     //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
                     a.setStrategy(new NNStrategy1out(this, a));
+                    //a.setStrategy(new RuleBasedStrategy(this, a, 0));
                 } else {
                     //a.setStrategy(new NNStrategy1output(this, a));
-                    a.setStrategy(new RuleBasedStrategy(this, 0));
+                    a.setStrategy(new RuleBasedStrategy(this, a, 0));
                 }
                 agentIndex++;
             }
@@ -193,24 +194,15 @@ public class Game {
             }
         }
         if (frameLimit >= 0 && frameCount>= frameLimit){
-            mustReset = true;/*
-            for (int i = 0; i < agents.size(); i++) {
-                Strategy strat = agents.get(i).getStrategy();
-                strat.learn(strat.getPunishmentIntensity(), 5);
-            }*/
+            mustReset = true;
         }
         if (mustReset) {
             double reward;
             for (int i = 0; i < agents.size(); i++) {
-                Strategy strat = agents.get(i).getStrategy();
-                /*
-                reward = scoreIncrease[agents.get(i).getTeam()] > 0 ? strat.getRewardIntensity() : strat.getPunishmentIntensity();
-                strat.learn(reward);
-                */
                 if (scoreIncrease[agents.get(i).getTeam()] > 0) {
-                    strat.learn(true, 10);
+                    agents.get(i).getStrategy().learn(true, 10);
                 } else {
-                    strat.learn(false, 1);
+                    agents.get(i).getStrategy().learn(false, 10);
                 }
             }
             for (int i = 0; i < teamsNumber; i++) {

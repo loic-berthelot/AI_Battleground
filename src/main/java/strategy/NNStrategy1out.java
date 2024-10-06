@@ -12,22 +12,22 @@ public class NNStrategy1out extends NNStrategy {
         super(game, controlledAgent);
         this.controlledAgent = controlledAgent;
         numOutputs = 1;
-        numInputs = (game.getAgentsNumber())+game.getKillingPointsNumber()+5;
+        numInputs = (game.getAgentsNumber()+game.getKillingPointsNumber())+5;
         scoreMethod = 0;
         intermediateLearn = false;
         Random random = new Random();
-        neuralNetwork = new NNdl4j(learningRate,random.nextInt(10000), numInputs, numOutputs);
 
-        gamma = 1;
+        gamma = 0.95;
         maxHistoryDepth = 10;
 
-        epsilon = 1;
-        epsilonMultiplier = 0.98;
-        learningRate = 0.001;
+        epsilon = 0.8;
+        epsilonMultiplier = 0.95;
+        learningRate = 0.0002;
         learningRateMultiplier = 1;
         rewardIntensity = 1;
-        punishmentIntensity = -1;
-        learningHistoryDepth = 50;
+        punishmentIntensity = 0;
+        learningHistoryDepth = 10;
+        neuralNetwork = new NNdl4j(learningRate,random.nextInt(10000), numInputs, numOutputs);
     }
     private double calculateScore(){
         if (scoreMethod == 0) {
@@ -43,8 +43,8 @@ public class NNStrategy1out extends NNStrategy {
     }
     public void decide(Agent agent){
         final Random random = new Random();
-        if (random.nextFloat() < epsilon) {
-            scoreMethod = 1;
+        if (random.nextDouble() <= epsilon) {
+            //scoreMethod = 1;
             //goToBestPosition(agent);
             agent.setOrderX(random.nextInt(3)-1);
             agent.setOrderY(random.nextInt(3)-1);
@@ -92,10 +92,9 @@ public class NNStrategy1out extends NNStrategy {
         double dist = 0;
         for (Agent agent : agents) {
             if (agent != controlledAgent) {
-                state[indexState] = distance(agent.getPosition(), controlledAgent.getPosition())-2*Agent.getAgentRadius();
-                //state[indexState+1] = 1-agent.getPosition().distanceToCenter()-Agent.getAgentRadius();
-                indexState ++;
-                dist = distance(agent.getPosX(), agent.getPosY(), controlledAgent.getPosX(), controlledAgent.getPosY());
+                state[indexState++] = distance(agent.getPosition(), controlledAgent.getPosition())-2*Agent.getAgentRadius();
+                //state[indexState++] = 1-agent.getPosition().distanceToCenter()-Agent.getAgentRadius();
+                dist = distance(agent.getPosition(), controlledAgent.getPosition());
                 if(agent.getTeam() == controlledAgent.getTeam() && dist < distAlly) {
                     distAlly = dist;
                 } else if (agent.getTeam() != controlledAgent.getTeam() && dist < distEnemy) {
@@ -104,9 +103,8 @@ public class NNStrategy1out extends NNStrategy {
             }
         }
         for (KillingPoint kp : killingPoints) {
-            state[indexState] = distance(kp.getPosition(), controlledAgent.getPosition())-Agent.getAgentRadius();
-            //state[indexState+1] = 1-kp.getPosition().distanceToCenter();
-            indexState ++;//= 2;
+            state[indexState++] = distance(kp.getPosition(), controlledAgent.getPosition())-Agent.getAgentRadius();
+            //state[indexState++] = 1-kp.getPosition().distanceToCenter();
             if (kp.getTeam() == controlledAgent.getTeam()) {
                 for (Agent enemy : agents) {
                     if (enemy.getTeam() != controlledAgent.getTeam()) {
@@ -129,29 +127,25 @@ public class NNStrategy1out extends NNStrategy {
         }
         distCenter = controlledAgent.getPosition().distanceToCenter();
         distBorder = 1-distCenter;
-        distDanger = Math.max(distDanger-Agent.getAgentRadius(), 0.001);
-        distPrey = Math.max(distPrey-Agent.getAgentRadius(), 0.001);
+        distDanger = Math.max(Math.pow(distDanger-Agent.getAgentRadius(), -1), 0.001);
+        distPrey = Math.max(Math.pow(distPrey-Agent.getAgentRadius(), -1), 0.001);
         distAlly = Math.max(distAlly-2*Agent.getAgentRadius(), 0.001);
         distEnemy = Math.max(distEnemy-2*Agent.getAgentRadius(), 0.001);
         distCenter = Math.max(distCenter, 0.001);
         distBorder = Math.max(distBorder-Agent.getAgentRadius(), 0.001);
-        state[indexState] = (game.getFrameLimit() - game.getFrameCount())/(double)game.getFrameLimit();
-        indexState++;
+        state[indexState++] = (game.getFrameLimit() - game.getFrameCount())/(double)game.getFrameLimit();
+        //state[indexState++] = game.getArena().hasCorners() ? 1 : 0;
+        //state[indexState++] = game.getArena().getInternalRadius();
+        state[indexState++] = distDanger;
+        state[indexState++] = distPrey;
+        state[indexState++] = distAlly;
+        state[indexState++] = distEnemy;
+        state[indexState++] = distBorder;
         /*
-        state[indexState+1] = game.getArena().hasCorners() ? 1 : 0;
-        state[indexState+2] = game.getArena().getInternalRadius();
-        indexState += 2;
+        state[indexState++] = distDanger*distDanger;
+        state[indexState++] = distPrey*distPrey;
+        state[indexState++] = distAlly*distAlly;
         */
-        state[indexState] = distDanger;
-        state[indexState+1] = distPrey;
-        state[indexState+2] = distAlly;
-        state[indexState+3] = distEnemy;
-        state[indexState+4] = distBorder;
-        //state[indexState+4] = distBorder;
-        /*
-        state[indexState+6] = distDanger*distDanger;
-        state[indexState+7] = distPrey*distPrey;
-        state[indexState+8] = distAlly*distAlly;*/
         return state;
     }
 }

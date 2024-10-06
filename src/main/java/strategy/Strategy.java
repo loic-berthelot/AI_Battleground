@@ -58,6 +58,26 @@ public abstract class Strategy {
     private double distance(double x1, double y1, double x2, double y2) {
         return Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
     }
+    public double dangerPreyHeuristic(Agent agent, double agressivity) {
+        double dist;
+        double distDanger = 10;
+        double distPrey = 10;
+        Vector<KillingPoint> killingPoints = game.getKillingPoints();
+        Vector<Agent> agents = game.getAgents();
+        for (KillingPoint kp : killingPoints) {
+            for (Agent ag : agents) {
+                if (ag.getTeam() != kp.getTeam()) {
+                    dist = distance(kp.getPosX(), kp.getPosY(), ag.getPosX(), ag.getPosY()) - Agent.getAgentRadius();
+                    if (ag.getTeam() == agent.getTeam()) {
+                        if (dist < distDanger) distDanger = dist;
+                    } else {
+                        if (dist < distPrey) distPrey = dist;
+                    }
+                }
+            }
+        }
+        return -1/ Math.max(distDanger, 0.001) + agressivity / Math.max(distPrey, 0.001);
+    }
     public double invertDistanceSumHeuristic(Agent agent, boolean cubeDist, double alliesCoefficient) {
         double reward, dist;
         KillingPoint killingPoint;

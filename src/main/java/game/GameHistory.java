@@ -13,6 +13,8 @@ public class GameHistory {
     private Game game;
     private int totalPoints;
     private int[] totalTeamPoints;
+    final double width;
+    final double height;
     public GameHistory(Game game, int scoresDepth, int ratiosDepth) {
         this.game = game;
         this.scoresDepth = scoresDepth;
@@ -21,6 +23,8 @@ public class GameHistory {
         ratios = new Vector<>();
         totalPoints = 0;
         totalTeamPoints = new int[game.getTeamsNumber()];
+        width = 900;
+        height = 450;
     }
     public void registerRatio(int[] score) {
         scores.add(0,score);
@@ -49,8 +53,6 @@ public class GameHistory {
     }
     public void draw(GraphicsContext graphicsContext) {
         synchronized (ratios) {
-            final double width = 900;
-            final double height = 600;
             final int border = 4;
             final double cornerX = game.getScreenPosX(1)+10+border;
             final double cornerY = game.getScreenPosY(-1)-height-border;
@@ -63,12 +65,11 @@ public class GameHistory {
                 totalHeight = 0;
                 for (int i = teamsNumber-1; i >= 0; i--) {
                     graphicsContext.setFill(Game.getTeamColor(i));
-                    graphicsContext.fillRect(cornerX+(ratiosDepth-j-1)*width/((double) ratiosDepth), cornerY + totalHeight, 1+width / ((double) ratiosDepth), height*ratios.get(j)[i]);
+                    graphicsContext.fillRect(cornerX+(ratiosDepth-j-1)*width/((double) ratiosDepth), cornerY + totalHeight, 0+width / ((double) ratiosDepth), height*ratios.get(j)[i]);
                     totalHeight += height*ratios.get(j)[i];
                 }
             }
             graphicsContext.setStroke(new Color(1,1,1,0.7));
-            graphicsContext.setLineWidth(1);
             final int divisionsNumber = 10;
             for (int i = 1; i < divisionsNumber; i++) {
                 if (i==divisionsNumber/2) {
@@ -79,5 +80,12 @@ public class GameHistory {
                 graphicsContext.strokeLine(cornerX, cornerY+i/(double) divisionsNumber*height, cornerX+width, cornerY+i/(double) divisionsNumber*height);
             }
         }
+    }
+    public double getHeight(){
+        return height;
+    }
+    public double getWinProportion(int team){
+        if (ratios.isEmpty()) return 0;
+        return ratios.get(0)[team];
     }
 }

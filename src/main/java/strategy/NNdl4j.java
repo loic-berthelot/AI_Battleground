@@ -20,22 +20,27 @@ public class NNdl4j {
     public NNdl4j(double learningRate, int seed, int numInputs, int numOutputs){
         this.numInputs = numInputs;
         this.numOutputs = numOutputs;
+        this.learningRate = learningRate;
         int numHidden = 16;
         network = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .weightInit(WeightInit.XAVIER)
                 .updater(new Adam(learningRate))
-                .dropOut(0.3)
-                .l2(1e-2)
                 .list()
                 .layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(numHidden)
                         .activation(Activation.SIGMOID)
+                        .dropOut(0.5)
+                        .l2(1e-3)
                         .build())
                 .layer(1, new DenseLayer.Builder().nIn(numHidden).nOut(numHidden)
                         .activation(Activation.SIGMOID)
+                        .dropOut(0.5)
+                        .l2(1e-3)
                         .build())
                 .layer(2, new DenseLayer.Builder().nIn(numHidden).nOut(numHidden)
                         .activation(Activation.SIGMOID)
+                        .dropOut(0.5)
+                        .l2(1e-3)
                         .build())
                 .layer(3, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
                         .activation(Activation.SIGMOID)
@@ -52,6 +57,7 @@ public class NNdl4j {
         for(int i = 0; i<learningBatch.getEpochsNumber(); i++ ){
             network.fit(dataset);
         }
+        //System.out.println("poids : "+network.getLayer(1).getParam("W").getDouble(0));
     }
     public double[] predict(double[] features){
         INDArray input = Nd4j.create(features, new int[]{1,numInputs});

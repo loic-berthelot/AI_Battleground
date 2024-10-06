@@ -63,15 +63,25 @@ public class GameCanvas extends Canvas {
         font = Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 40);
         graphicsContext.setFont(font);
         final int margin = 7;
-        final double cornerX = game.getScreenPosX(1) + 40;
-        final double cornerY = game.getScreenPosY(-1)-675;
+        final double cornerX = game.getScreenPosX(1) + 80;
+        final double cornerY = game.getScreenPosY(-1)-game.getGameHistory().getHeight()-75;
+        graphicsContext.setFill(new Color(1, 1, 1, 0.5));
+        for (int i = 0; i < game.getTeamsNumber(); i++){
+            if (game.isLastWinner(i)) {
+                final double shiftX = 180.0 * (i % 4);
+                final double shiftY = -55*(int)(i/4);
+                Text text = new Text(Integer.toString(game.getScore(i)));
+                text.setFont(font);
+                graphicsContext.fillOval(cornerX + shiftX - margin, cornerY + shiftY - margin, text.getLayoutBounds().getWidth() + 2 * margin, text.getLayoutBounds().getHeight() + 2 * margin);
+            }
+        }
         for (int i = 0; i < game.getTeamsNumber(); i++){
             final double shiftX = 180.0 * (i % 4);
             final double shiftY = -55*(int)(i/4);
             if (game.isLastWinner(i)) {
                 Text text = new Text(Integer.toString(game.getScore(i)));
                 text.setFont(font);
-                graphicsContext.setFill(new Color(1, 1, 1, 0.5));
+                graphicsContext.setFill(new Color(1, 1, 1, 0.8));
                 graphicsContext.fillOval(cornerX + shiftX - margin, cornerY + shiftY - margin, text.getLayoutBounds().getWidth() + 2 * margin, text.getLayoutBounds().getHeight() + 2 * margin);
             }
             graphicsContext.setFill(Game.getTeamColor(i));

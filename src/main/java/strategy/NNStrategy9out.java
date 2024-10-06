@@ -20,7 +20,7 @@ public class NNStrategy9out extends NNStrategy {
         gamma = 1;
         maxHistoryDepth = 12;
 
-        learningRate = 0.05;
+        learningRate = 0.005;
         learningRateMultiplier = 0.99;
         rewardIntensity = 1;
         punishmentIntensity = 0;
@@ -34,7 +34,7 @@ public class NNStrategy9out extends NNStrategy {
     public void decide(Agent agent) {
         Random random = new Random();
         if (random.nextFloat() < epsilon) {
-            scoreMethod = 1;
+            //scoreMethod = 1;
             agent.setOrderX(random.nextInt(3)-1);
             agent.setOrderY(random.nextInt(3)-1);
         } else {

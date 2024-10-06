@@ -10,19 +10,25 @@ public class RuleBasedStrategy extends Strategy{
     private double epsilon;
     private double epsilonCoefficient;
     private int heuristic;
-    public RuleBasedStrategy(Game game, int heuristic) {
+    private Agent controlledAgent;
+    public RuleBasedStrategy(Game game, Agent controlledAgent, int heuristic) {
         super(game);
+        this.controlledAgent = controlledAgent;
         this.heuristic = heuristic;
         epsilon = 0;
-        epsilonCoefficient = 1;
+        epsilonCoefficient = 0.9;
     }
     public double heuristicResult(Agent agent) {
         switch(heuristic) {
             case 0 :
-                return invertDistanceSumHeuristic(agent, false, -0.075);
+                return dangerPreyHeuristic(agent, 2.5);
             case 1 :
-                return invertDistanceSumHeuristic(agent, false, -0.05);
+                return dangerPreyHeuristic(agent, 0.5);
             case 2 :
+                return invertDistanceSumHeuristic(agent, false, -0.075);
+            case 3 :
+                return invertDistanceSumHeuristic(agent, false, -0.05);
+            case 4 :
                 return invertDistanceSumHeuristic(agent, true, 0.012);
             default :
                 return invertDistanceSumHeuristic(agent, false,-0.01);
@@ -37,19 +43,21 @@ public class RuleBasedStrategy extends Strategy{
     @Override
     public void decide(Agent agent) {
         Random random = new Random();
-        if (random.nextFloat() < epsilon) {
+        if (random.nextDouble() <= epsilon) {
             agent.setOrderX(random.nextInt(3)-1);
             agent.setOrderY(random.nextInt(3)-1);
         } else {
             goToBestPosition(agent);
         }
-        epsilon *= epsilonCoefficient;
     }
     public void setEpsilon(double epsilon) {
         this.epsilon = epsilon;
     }
     @Override
     public void learn(boolean victory, int nEpochs){
-        epsilon *= epsilonCoefficient;
+        //epsilon *= epsilonCoefficient;
+        //if (epsilon < 0.02) epsilon = 0.8;
+        double winProportion = game.getGameHistory().getWinProportion(controlledAgent.getTeam());
+        epsilon = 0.5*winProportion*winProportion;
     }
 }

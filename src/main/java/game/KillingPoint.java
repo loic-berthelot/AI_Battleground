@@ -30,7 +30,7 @@ public class KillingPoint extends Particle {
             double diffY = agent.getPosY() - posY;
             if (team != agent.getTeam() && Math.sqrt(diffX*diffX+ diffY*diffY) < agent.getRadius()){
                 kill(agent);
-                agent.getStrategy().learn(false, 2);
+                //agent.getStrategy().learn(false, 20);
             }
         }
         colorShift=0.55+0.45*Math.sin((double)(0.2*game.getFrameCount()));
