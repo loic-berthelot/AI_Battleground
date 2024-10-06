@@ -5,19 +5,22 @@ import arena.CircularArena;
 import arena.SquareArena;
 import arena.TorusArena;
 import controller.InputBuffer;
+import gameConfiguration.ConfigurationCrossTheMap;
+import gameConfiguration.ConfigurationSimple2vs2;
+import gameConfiguration.GameConfiguration;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import strategy.*;
 
 import java.util.Iterator;
-import java.util.Random;
 import java.util.Vector;
 
 public class Game {
     private Vector<Agent> agents;
     private Vector<KillingPoint> killingPoints;
     private Vector<Light> lights;
+    private Vector<AreaOfEffect> aoes;
     final private static Vector<Color> teamColors;
     private Vector<Integer> scores;
     private int teamsNumber;
@@ -38,6 +41,7 @@ public class Game {
     private Arena arena;
     private static int currentAgentId;
     private boolean[] lastWinners;
+    private GameConfiguration gameConfiguration;
     static {
         teamColors = new Vector<>();
         teamColors.add(Color.BLUE);
@@ -50,6 +54,7 @@ public class Game {
         teamColors.add(Color.ORANGE);
     }
     public Game() {
+        gameConfiguration = new ConfigurationCrossTheMap(this);
         initGame();
         turboMode = false;
         turboInputBuffer = new InputBuffer("Turbo");
@@ -69,11 +74,8 @@ public class Game {
         Agent.setSpeed(speed);
         frameLimit = 2000;
         scores = new Vector<>();
-        arena = new TorusArena(0.25);
         gameHistory = new GameHistory(this, 100, 300);
-        //arena = new SquareArena();
-        buildAgents();
-        buildKillingPoints();
+        gameConfiguration.initGame();
         giveStrategies();
         initRound();
         for (int i = 0; i < teamsNumber; i++) {
@@ -88,12 +90,10 @@ public class Game {
             for (int j = 0; j < teamSize; j++) {
                 a = agents.get(agentIndex);
                 if (i == 0) {
-                    //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
-                    //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                    a.setStrategy(new NNStrategy1out(this, a));
-                    //a.setStrategy(new RuleBasedStrategy(this, a, 0));
+                    if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
+                    else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
+                    //a.setStrategy(new NNStrategy1out(this, a));
                 } else {
-                    //a.setStrategy(new NNStrategy1output(this, a));
                     a.setStrategy(new RuleBasedStrategy(this, a, 0));
                 }
                 agentIndex++;
@@ -101,33 +101,10 @@ public class Game {
         }
     }
     public void initRound(){
+        gameConfiguration.initRound();
         roundCount++;
         frameCount = 0;
         lights = new Vector<>();
-        Random random = new Random();
-        double angleShift = random.nextDouble(2*Math.PI);
-        int agentIndex = 0;
-        switch (random.nextInt(1)) {
-            case 0:
-                arena = new CircularArena();
-                break;
-            case 1:
-                arena = new SquareArena();
-                break;
-            case 2:
-                arena = new TorusArena(0.05+random.nextDouble(0.35));
-                break;
-        }
-        for (int i = 0; i < teamsNumber; i++) {
-            for (int j = 0; j < teamSize; j++) {
-                double angle = 2*Math.PI*i/teamsNumber+angleShift;
-                double dist = 0.4+0.4*(j/(double)teamSize);
-                //double angle = random.nextDouble(2*Math.PI);
-                //double dist = random.nextDouble(1);
-                agents.get(agentIndex).init(new Position(dist * Math.cos(angle), dist * Math.sin(angle)));
-                agentIndex++;
-            }
-        }
         for (Agent a : agents) {
             a.discardStates();
             a.recordState();
@@ -135,9 +112,7 @@ public class Game {
     }
     public void evolve() {
         if (frameCount%recordingDelta==0) {
-            for (Agent a : agents) {
-                a.recordState();
-            };
+            for (Agent a : agents) a.recordState();
         }
         for (Agent a : agents) {
             if(a.getStrategy().isHuman()) a.decide();
@@ -154,16 +129,10 @@ public class Game {
                 }
             }
         }
-        for (Agent agent : agents) {
-            agent.evolve();
-        }
+        for (Agent agent : agents) agent.evolve();
         manageCollisions();
-        for (Agent a : agents) {
-            a.updateGraphicalPosition();
-        }
-        for (KillingPoint kp : killingPoints) {
-            kp.evolve(this);
-        }
+        for (Agent a : agents) a.updateGraphicalPosition();
+        for (KillingPoint kp : killingPoints) kp.evolve(this);
         if (frameCount%10==0) {
             for (int i = 0; i < agents.size(); i++) {
                 lights.add(new Light(new Position(agents.get(i).getPosition()), getTeamColor(agents.get(i).getTeam()), Agent.getAgentRadius()));
@@ -178,39 +147,8 @@ public class Game {
                 }
             }
         }
-        checkEndRound();
+        gameConfiguration.checkEndRound();
         frameCount++;
-    }
-    public void checkEndRound() {
-        int[] scoreIncrease = new int[teamsNumber];
-        for (int i = 0; i < agents.size(); i++) {
-            scoreIncrease[agents.get(i).getTeam()] += agents.get(i).getKillCount();
-        }
-        boolean mustReset = false;
-        for (int i = 0; i < teamsNumber; i++) {
-            if (scoreIncrease[i] > 0) {
-                mustReset = true;
-                scores.set(i, scores.get(i)+1);
-            }
-        }
-        if (frameLimit >= 0 && frameCount>= frameLimit){
-            mustReset = true;
-        }
-        if (mustReset) {
-            double reward;
-            for (int i = 0; i < agents.size(); i++) {
-                if (scoreIncrease[agents.get(i).getTeam()] > 0) {
-                    agents.get(i).getStrategy().learn(true, 10);
-                } else {
-                    agents.get(i).getStrategy().learn(false, 10);
-                }
-            }
-            for (int i = 0; i < teamsNumber; i++) {
-                lastWinners[i] = scoreIncrease[i] > 0;
-            }
-            gameHistory.registerRatio(scoreIncrease);
-            initRound();
-        }
     }
     public double distance(Position p1, Position p2) {
         double dx = p2.getX() - p1.getX();
@@ -240,27 +178,6 @@ public class Game {
                 pos.addX(shifts[2*i]);
                 pos.addY(shifts[2*i+1]);
                 arena.replaceAgent(agents.get(i));
-            }
-        }
-    }
-    public void buildAgents(){
-        agents = new Vector<>();
-        for (int i = 0; i < teamsNumber; i++) {
-            for (int j = 0; j < teamSize; j++) {
-                Agent a = new Agent(this, i, 0);
-                agents.add(a);
-            }
-        }
-    }
-    private void buildKillingPoints(){
-        killingPoints = new Vector<KillingPoint>();
-        Agent agent1;
-        Agent agent2;
-        for (int i = 0; i < agents.size(); i++) {
-            agent1 = agents.get(i);
-            for (int j = i+1; j < agents.size(); j++) {
-                agent2 = agents.get(j);
-                if (agent1.getTeam() == agent2.getTeam() && agent1.getGroup() == agent2.getGroup()) killingPoints.add(new KillingPoint(agent1, agent2));
             }
         }
     }
@@ -307,6 +224,15 @@ public class Game {
     public int getTeamsNumber(){
         return teamsNumber;
     }
+    public void setTeamsNumber(int teamsNumber) {
+        this.teamsNumber = teamsNumber;
+    }
+    public void setTeamSize(int teamSize){
+        this.teamSize = teamSize;
+    }
+    public int getTeamSize(){
+        return teamSize;
+    }
     public int getScore(int i){
         return scores.get(i);
     }
@@ -351,5 +277,29 @@ public class Game {
     }
     public int getCurrentAgentId(){
         return currentAgentId++;
+    }
+    public void setArena(Arena arena) {
+        this.arena = arena;
+    }
+    public void setAgents(Vector<Agent> agents) {
+        this.agents = agents;
+    }
+    public void setKillingPoints(Vector<KillingPoint> killingPoints) {
+        this.killingPoints = killingPoints;
+    }
+    public boolean isEndOfTime() {
+        return frameLimit >= 0 && frameCount>= frameLimit;
+    }
+    public Vector<Integer> getScores(){
+        return scores;
+    }
+    public void setLastWinner(int index, boolean value){
+        lastWinners[index] = value;
+    }
+    public Vector<AreaOfEffect> getAoes() {
+        return aoes;
+    }
+    public void setAoes(Vector<AreaOfEffect> aoes) {
+        this.aoes = aoes;
     }
 }

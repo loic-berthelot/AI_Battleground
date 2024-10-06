@@ -1,9 +1,6 @@
 package view;
 
-import game.Agent;
-import game.Game;
-import game.KillingPoint;
-import game.Light;
+import game.*;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -38,6 +35,10 @@ public class GameCanvas extends Canvas {
         Vector<Light> lights = game.getLights();
         clearCanvas();
         game.getArena().draw(graphicsContext, game);
+        Vector<AreaOfEffect> aoes = game.getAoes();
+        for (AreaOfEffect aoe : aoes) {
+            aoe.draw(graphicsContext, game);
+        }
         synchronized(lights) {
             for (Light light : lights) {
                 light.draw(graphicsContext, game);
