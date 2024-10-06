@@ -17,7 +17,7 @@ public class ConfigurationSimple2vs2 extends GameConfiguration{
     @Override
     public void initGame() {
         buildAgents();
-        buildKillingPoints();
+        buildAttachedKillingPoints();
     }
 
     @Override

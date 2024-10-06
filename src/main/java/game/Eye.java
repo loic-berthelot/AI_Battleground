@@ -13,12 +13,12 @@ public class Eye {
     final private double pupilForwardShift;
     private double pupilMovementShift;
     final private double movementShiftLimit;
-    public Eye(Agent agent, double angleShift){
+    public Eye(Agent agent, double angleShift, double radius){
         this.agent = agent;
         this.angleShift = angleShift;
-        radius = 0.22*agent.getRadius();
+        this.radius = radius;
         pupilRadius = 0.6*radius;
-        forwardShift = 0.7*agent.getRadius();
+        forwardShift = 0.92*agent.getRadius()-radius;
         pupilForwardShift = 0.12 * forwardShift;
         movementShiftLimit = 0.4*Math.PI;
     }

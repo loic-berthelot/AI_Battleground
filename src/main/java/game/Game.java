@@ -1,11 +1,9 @@
 package game;
 
 import arena.Arena;
-import arena.CircularArena;
-import arena.SquareArena;
-import arena.TorusArena;
 import controller.InputBuffer;
 import gameConfiguration.ConfigurationCrossTheMap;
+import gameConfiguration.ConfigurationKillTheKing;
 import gameConfiguration.ConfigurationSimple2vs2;
 import gameConfiguration.GameConfiguration;
 import javafx.geometry.Rectangle2D;
@@ -54,7 +52,7 @@ public class Game {
         teamColors.add(Color.ORANGE);
     }
     public Game() {
-        gameConfiguration = new ConfigurationCrossTheMap(this);
+        gameConfiguration = new ConfigurationKillTheKing(this);
         initGame();
         turboMode = false;
         turboInputBuffer = new InputBuffer("Turbo");
@@ -68,13 +66,15 @@ public class Game {
         teamsNumber = 2;
         teamSize = 2;
         speed = 0.005;
-        decisionDelta = 20;
+        decisionDelta = 10;
         recordingDelta = 20;
         Agent.setAgentRadius(0.08);
         Agent.setSpeed(speed);
         frameLimit = 2000;
         scores = new Vector<>();
         gameHistory = new GameHistory(this, 100, 300);
+        aoes = new Vector<>();
+        killingPoints = new Vector<>();
         gameConfiguration.initGame();
         giveStrategies();
         initRound();
@@ -134,8 +134,8 @@ public class Game {
         for (Agent a : agents) a.updateGraphicalPosition();
         for (KillingPoint kp : killingPoints) kp.evolve(this);
         if (frameCount%10==0) {
-            for (int i = 0; i < agents.size(); i++) {
-                lights.add(new Light(new Position(agents.get(i).getPosition()), getTeamColor(agents.get(i).getTeam()), Agent.getAgentRadius()));
+            for (Agent agent : agents) {
+                if (agent.isAlive()) lights.add(new Light(new Position(agent.getPosition()), getTeamColor(agent.getTeam()), Agent.getAgentRadius()));
             }
         }
         synchronized (lights) {
@@ -144,6 +144,16 @@ public class Game {
                 Light light = iter.next();
                 if (light.evolve()) {
                     iter.remove();
+                }
+            }
+        }
+        synchronized (killingPoints) {
+            Iterator<KillingPoint> iter = killingPoints.iterator();
+            while (iter.hasNext()) {
+                KillingPoint kp = iter.next();
+                if (kp instanceof AttachedKillingPoint) {
+                    AttachedKillingPoint ap = (AttachedKillingPoint) kp;
+                    if (!ap.getAgent1().isAlive() || !ap.getAgent2().isAlive()) iter.remove();
                 }
             }
         }
@@ -164,7 +174,7 @@ public class Game {
             for (int i = 0; i < agents.size(); i++) {
                 a1 = agents.get(i);
                 for (Agent a2 : agents) {
-                    if (a1 != a2) {
+                    if (a1 != a2 && a1.isAlive() && a2.isAlive()) {
                         dist = Math.max(Agent.getAgentRadius() - 0.5 * distance(a1.getPosition(), a2.getPosition()), 0);
                         angle = Math.atan2(a1.getPosY() - a2.getPosY(), a1.getPosX() - a2.getPosX());
                         shifts[2 * i] += dist * Math.cos(angle);
@@ -257,6 +267,9 @@ public class Game {
     public double getScreenPosY(double posY) {
         return getCenterArenaY()-posY*getArenaRadius();
     }
+    public Position getScreenPos(Position position) {
+        return new Position(getScreenPosX(position.getX()), getScreenPosY(position.getY()));
+    }
     public double getScreenSize(double size) {
         return getArenaRadius()*size;
     }
@@ -301,5 +314,17 @@ public class Game {
     }
     public void setAoes(Vector<AreaOfEffect> aoes) {
         this.aoes = aoes;
+    }
+    public void addKillingPoint(KillingPoint kp) {
+        killingPoints.add(kp);
+    }
+    public void removeAttachedKp(){
+        synchronized (killingPoints) {
+            Iterator<KillingPoint> iter = killingPoints.iterator();
+            while (iter.hasNext()) {
+                KillingPoint kp = iter.next();
+                if (kp instanceof AttachedKillingPoint) iter.remove();
+            }
+        }
     }
 }

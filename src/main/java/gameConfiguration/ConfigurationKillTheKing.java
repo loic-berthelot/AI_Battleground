@@ -1,40 +1,42 @@
 package gameConfiguration;
 
 import arena.SquareArena;
-import game.Agent;
-import game.AreaOfEffect;
-import game.Game;
-import game.Position;
+import game.*;
 
 import java.util.Vector;
 
-public class ConfigurationCrossTheMap extends GameConfiguration {
-    public ConfigurationCrossTheMap(Game game){
+public class ConfigurationKillTheKing extends GameConfiguration {
+    public ConfigurationKillTheKing(Game game){
         super(game);
     }
 
     @Override
     public void initGame() {
         game.setArena(new SquareArena());
-        game.setTeamsNumber(2);
-        game.setTeamSize(2);
-        Vector<AreaOfEffect> aoes = new Vector<>();
-        final double halfWidth = 0.03;
-        for (int i = 0; i <= 1; i++) {
-            aoes.add(new AreaOfEffect(new Position((halfWidth-1)*(i*2-1), 0), halfWidth, 1, i, game.getTeamColor(i).deriveColor(0, 1, 1, 0.5)));//
-        }
-        game.setAoes(aoes);
+        final int teamsNumber = 2;
+        final int teamSize = 4;
+        game.setTeamsNumber(teamsNumber);
+        game.setTeamSize(teamSize);
         buildAgents();
-        buildAttachedKillingPoints();
+        for (int i = 0; i < 2; i++) {
+            game.getAgent(i*teamSize).setType(AgentType.King);
+            game.getAgent(i*teamSize).setGroup(2);
+        }
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 6; j++) {
+                game.addKillingPoint(new DetachedKillingPoint(i, new Position(0.5*(i*2-1), (0.95-0.15*j)*(i*2-1)), game));
+            }
+        }
     }
 
     @Override
     public void initRound() {
+        buildAttachedKillingPoints();
         int agentIndex = 0;
         for (int i = -1; i <= 1; i+=2) {
-            for (int j = -1; j <= 1; j+=2) {
-                game.getAgent(agentIndex).init(new Position(i*0.7, j*0.3));
-                agentIndex++;
+            game.getAgent(agentIndex++).init(new Position(i*0.75, i*0.75));
+            for (int j = 0; j <= 2; j++) {
+                game.getAgent(agentIndex++).init(new Position(i*0.5, -i*j*0.4));
             }
         }
     }
@@ -45,12 +47,7 @@ public class ConfigurationCrossTheMap extends GameConfiguration {
         int[] scoreIncrease = new int[teamsNumber];
         Vector<AreaOfEffect> aoes = game.getAoes();
         for (Agent agent : game.getAgents()) {
-            scoreIncrease[agent.getTeam()] += agent.getKillCount();
-            for (AreaOfEffect aoe : aoes) {
-                if (aoe.getTeam() == agent.getTeam() && aoe.containsPart(agent)) {
-                    scoreIncrease[agent.getTeam()] += 1;
-                }
-            }
+            if (agent.isKing() && ! agent.isAlive()) scoreIncrease[1-agent.getTeam()] += 1;
         }
         boolean mustReset = false;
         Vector<Integer> scores = game.getScores();

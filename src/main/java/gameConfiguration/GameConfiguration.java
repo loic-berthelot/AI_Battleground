@@ -1,6 +1,7 @@
 package gameConfiguration;
 
 import game.Agent;
+import game.AttachedKillingPoint;
 import game.Game;
 import game.KillingPoint;
 
@@ -27,18 +28,19 @@ public abstract class GameConfiguration {
         }
         game.setAgents(agents);
     }
-    public void buildKillingPoints(){
-        Vector<KillingPoint> killingPoints = new Vector<KillingPoint>();
+    public void buildAttachedKillingPoints(){
         Agent agent1;
         Agent agent2;
+        game.removeAttachedKp();
         final int agentsNumber = game.getAgentsNumber();
         for (int i = 0; i < agentsNumber; i++) {
             agent1 = game.getAgent(i);
             for (int j = i+1; j < agentsNumber; j++) {
                 agent2 = game.getAgent(j);
-                if (agent1.getTeam() == agent2.getTeam() && agent1.getGroup() == agent2.getGroup()) killingPoints.add(new KillingPoint(agent1, agent2));
+                if (agent1.getTeam() == agent2.getTeam() && agent1.getGroup() == agent2.getGroup()) {
+                    game.addKillingPoint(new AttachedKillingPoint(agent1, agent2));
+                }
             }
         }
-        game.setKillingPoints(killingPoints);
     }
 }

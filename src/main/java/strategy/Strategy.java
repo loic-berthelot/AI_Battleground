@@ -1,9 +1,6 @@
 package strategy;
 
-import game.Agent;
-import game.Game;
-import game.KillingPoint;
-import game.Position;
+import game.*;
 
 import java.util.Random;
 import java.util.Vector;
@@ -66,12 +63,14 @@ public abstract class Strategy {
         Vector<Agent> agents = game.getAgents();
         for (KillingPoint kp : killingPoints) {
             for (Agent ag : agents) {
-                if (ag.getTeam() != kp.getTeam()) {
+                if (ag.getTeam() != kp.getTeam() && ag.isAlive()) {
                     dist = distance(kp.getPosX(), kp.getPosY(), ag.getPosX(), ag.getPosY()) - Agent.getAgentRadius();
-                    if (ag.getTeam() == agent.getTeam()) {
-                        if (dist < distDanger) distDanger = dist;
-                    } else {
-                        if (dist < distPrey) distPrey = dist;
+                    if (kp instanceof AttachedKillingPoint || dist < 2*Agent.getAgentRadius()) {
+                        if (ag.getTeam() == agent.getTeam()) {
+                            if (dist < distDanger) distDanger = dist;
+                        } else {
+                            if (dist < distPrey) distPrey = dist;
+                        }
                     }
                 }
             }

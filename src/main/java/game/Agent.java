@@ -13,7 +13,6 @@ import java.util.ArrayList;
 
 public class Agent extends Particle {
     final static private double sqrtHalf = Math.sqrt(0.5);
-    final private int group;
     static private double speed;
     static private double agentRadius;
     private Position position;
@@ -27,6 +26,8 @@ public class Agent extends Particle {
     private ArrayList<Position> positionsHistory;
     private double orientation;
     private double targetOrientation;
+    private AgentType agentType;
+    private int group;
     ArrayList<Eye> eyes;
     Game game;
     public Agent(Game game, int team, int group) {
@@ -37,8 +38,7 @@ public class Agent extends Particle {
         strategy = new NullStrategy();
         id = game.getCurrentAgentId();
         eyes = new ArrayList<>();
-        eyes.add(new Eye(this, -0.6));
-        eyes.add(new Eye(this, 0.6));
+        setType(AgentType.Soldier);
         init();
     }
     public void init() {
@@ -92,11 +92,13 @@ public class Agent extends Particle {
         }
     }
     public void evolve(){
-        move(orderX, orderY);
-        adjustOrientation();
-        positionsHistory.add(new Position(position));
-        if (orderX != 0 || orderY != 0) {
-            targetOrientation = (Math.atan2(orderY, orderX)+2*Math.PI)%(2*Math.PI);
+        if (alive) {
+            move(orderX, orderY);
+            adjustOrientation();
+            positionsHistory.add(new Position(position));
+            if (orderX != 0 || orderY != 0) {
+                targetOrientation = (Math.atan2(orderY, orderX) + 2 * Math.PI) % (2 * Math.PI);
+            }
         }
     }
     public static void setAgentRadius(double r) {
@@ -149,15 +151,17 @@ public class Agent extends Particle {
     }
     @Override
     public void draw(GraphicsContext graphicsContext, Game game) {
-        super.draw(graphicsContext, game);
-        graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 200*agentRadius));
-        graphicsContext.setFill(Color.BLACK);
-        Text text = new Text(String.valueOf(id));
-        double textWidth = text.getLayoutBounds().getWidth();
-        double textHeight = text.getLayoutBounds().getHeight();
-        graphicsContext.fillText(text.getText(), game.getScreenPosX(graphicalPosition.getX())-textWidth/2, game.getScreenPosY(graphicalPosition.getY())+textHeight/2);
-        for (int i = 0; i < eyes.size(); i++) {
-            eyes.get(i).draw(graphicsContext, game);
+        if (alive) {
+            super.draw(graphicsContext, game);
+            graphicsContext.setFont(Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 200 * agentRadius));
+            graphicsContext.setFill(Color.BLACK);
+            Text text = new Text(String.valueOf(id));
+            double textWidth = text.getLayoutBounds().getWidth();
+            double textHeight = text.getLayoutBounds().getHeight();
+            graphicsContext.fillText(text.getText(), game.getScreenPosX(graphicalPosition.getX()) - textWidth / 2, game.getScreenPosY(graphicalPosition.getY()) + textHeight / 2);
+            for (int i = 0; i < eyes.size(); i++) {
+                eyes.get(i).draw(graphicsContext, game);
+            }
         }
     }
     public void recordState(){
@@ -189,5 +193,28 @@ public class Agent extends Particle {
     }
     public double getTargetOrientation(){
         return targetOrientation;
+    }
+    public void setType(AgentType agentType){
+        if (agentType != this.agentType) {
+            eyes.clear();
+            switch (agentType) {
+                case King -> {
+                    eyes.add(new Eye(this, 0, 0.33*Agent.getAgentRadius()));
+                    break;
+                }
+                case Soldier -> {
+                    eyes.add(new Eye(this, -0.6, 0.22*Agent.getAgentRadius()));
+                    eyes.add(new Eye(this, 0.6, 0.22*Agent.getAgentRadius()));
+                    break;
+                }
+            }
+            this.agentType = agentType;
+        }
+    }
+    public boolean isKing(){
+        return agentType == AgentType.King;
+    }
+    public void setGroup(int group){
+        this.group = group;
     }
 }
