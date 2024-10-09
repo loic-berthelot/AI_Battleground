@@ -1,6 +1,7 @@
 package game;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
@@ -149,6 +150,14 @@ public class Agent extends Particle {
     public void incrementKillCount(){
         killCount++;
     }
+    public void drawCrown(GraphicsContext graphicsContext, Game game) {
+        graphicsContext.save();
+        Image img = new Image("crown.png");
+        graphicsContext.translate(game.getScreenPosX(graphicalPosition.getX()), game.getScreenPosY(graphicalPosition.getY()));
+        graphicsContext.rotate(-orientation*180/Math.PI-90);
+        graphicsContext.drawImage(img, -25, -60, 50, 30);
+        graphicsContext.restore();
+    }
     @Override
     public void draw(GraphicsContext graphicsContext, Game game) {
         if (alive) {
@@ -162,6 +171,7 @@ public class Agent extends Particle {
             for (int i = 0; i < eyes.size(); i++) {
                 eyes.get(i).draw(graphicsContext, game);
             }
+            if (agentType == AgentType.King) drawCrown(graphicsContext, game);
         }
     }
     public void recordState(){
@@ -216,5 +226,9 @@ public class Agent extends Particle {
     }
     public void setGroup(int group){
         this.group = group;
+    }
+    public void faceCenter(){
+        targetOrientation = position.getOppositeDirection();
+        orientation = targetOrientation;
     }
 }

@@ -43,4 +43,8 @@ public class Position {
         x *= coefficient;
         y *= coefficient;
     }
+
+    public double getOppositeDirection() {
+        return Math.atan2(-y, -x);
+    }
 }

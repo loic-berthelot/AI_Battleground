@@ -43,4 +43,9 @@ public abstract class GameConfiguration {
             }
         }
     }
+    public void orientAgentsTowardsCenter(){
+        for (Agent agent : game.getAgents()) {
+            agent.faceCenter();
+        }
+    }
 }

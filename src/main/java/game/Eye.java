@@ -55,7 +55,11 @@ public class Eye {
         return getPosY()+pupilForwardShift*Math.sin(getPupilOrientation());
     }
     public void draw(GraphicsContext graphicsContext, Game game) {
-        graphicsContext.setFill(Color.WHITE);
+        if (radius < 0.3*Agent.getAgentRadius()) {
+            graphicsContext.setFill(Color.WHITE);
+        } else {
+            graphicsContext.setFill(Color.YELLOW.deriveColor(0, 0.5, 1, 1));
+        }
         double size = game.getScreenSize(2*radius);
         graphicsContext.fillOval(game.getScreenPosX(getPosX() - radius), game.getScreenPosY(getPosY() + radius), size, size);
         graphicsContext.setFill(Color.BLACK);

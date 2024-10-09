@@ -39,6 +39,7 @@ public class ConfigurationKillTheKing extends GameConfiguration {
                 game.getAgent(agentIndex++).init(new Position(i*0.5, -i*j*0.4));
             }
         }
+        orientAgentsTowardsCenter();
     }
     @Override
     public void checkEndRound() {

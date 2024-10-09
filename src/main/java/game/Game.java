@@ -52,7 +52,7 @@ public class Game {
         teamColors.add(Color.ORANGE);
     }
     public Game() {
-        gameConfiguration = new ConfigurationKillTheKing(this);
+        gameConfiguration = new ConfigurationCrossTheMap(this);
         initGame();
         turboMode = false;
         turboInputBuffer = new InputBuffer("Turbo");
@@ -89,10 +89,10 @@ public class Game {
         for (int i = 0; i < teamsNumber; i++) {
             for (int j = 0; j < teamSize; j++) {
                 a = agents.get(agentIndex);
-                if (i == 0) {
-                    if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
-                    else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                    //a.setStrategy(new NNStrategy1out(this, a));
+                if (i == -1) {
+                    //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
+                    //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
+                    a.setStrategy(new NNStrategy1out(this, a));
                 } else {
                     a.setStrategy(new RuleBasedStrategy(this, a, 0));
                 }
