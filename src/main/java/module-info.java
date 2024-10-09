@@ -5,6 +5,8 @@ module org.example.ai_battleground {
     requires deeplearning4j.nn;
     requires nd4j.api;
     requires fastutil;
+    requires java.desktop;
+    requires oswego.concurrent;
 
     // Export the controller package to javafx.graphics
     exports controller to javafx.graphics;

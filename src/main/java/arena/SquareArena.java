@@ -2,6 +2,7 @@ package arena;
 
 import game.Agent;
 import game.Game;
+import game.Particle;
 import game.Position;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -31,11 +32,11 @@ public class SquareArena extends Arena{
         graphicsContext.strokeLine(game.getScreenPosX(0), game.getScreenPosY(-1), game.getScreenPosX(0), game.getScreenPosY(1));
         graphicsContext.strokeLine(game.getScreenPosX(-1), game.getScreenPosY(0), game.getScreenPosX(1), game.getScreenPosY(0));
     }
-    public void replaceAgent(Agent agent){
-        Position position = agent.getPosition();
+    public void replaceParticle(Particle particle){
+        Position position = particle.getPosition();
         double x = position.getX();
         double y = position.getY();
-        double radius = agent.getRadius();
+        double radius = particle.getRadius();
         if (x < radius-1) position.setX(radius-1);
         if (y < radius-1) position.setY(radius-1);
         if (x > 1-radius) position.setX(1-radius);

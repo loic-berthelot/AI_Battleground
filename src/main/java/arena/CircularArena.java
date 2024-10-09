@@ -2,6 +2,7 @@ package arena;
 
 import game.Agent;
 import game.Game;
+import game.Particle;
 import game.Position;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -33,9 +34,9 @@ public class CircularArena extends Arena{
         graphicsContext.strokeLine(game.getScreenPosX(0), game.getScreenPosY(-1), game.getScreenPosX(0), game.getScreenPosY(1));
         graphicsContext.strokeLine(game.getScreenPosX(-1), game.getScreenPosY(0), game.getScreenPosX(1), game.getScreenPosY(0));
     }
-    public void replaceAgent(Agent agent) {
-        Position position = agent.getPosition();
-        double radius = agent.getRadius();
+    public void replaceParticle(Particle particle) {
+        Position position = particle.getPosition();
+        double radius = particle.getRadius();
         double dist = position.distanceToCenter();
         if (dist > 1-radius) {
             position.multiply((1-radius)/dist);

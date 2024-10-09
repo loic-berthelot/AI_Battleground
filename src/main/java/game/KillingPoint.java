@@ -38,6 +38,5 @@ public abstract class KillingPoint extends Particle {
 
     public abstract double getPosX();
     public abstract double getPosY();
-    public abstract Position getPosition();
     public abstract Position getGraphicalPosition();
 }

@@ -27,6 +27,11 @@ public class Position {
         this.y = y;
     }
 
+    public void setCoordinates(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
     public void addX(double x) {
         this.x += x;
     }

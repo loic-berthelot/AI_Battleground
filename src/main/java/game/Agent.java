@@ -74,7 +74,7 @@ public class Agent extends Particle {
             position.addX(speed*dx*sqrtHalf);
             position.addY(speed*dy*sqrtHalf);
         }
-        game.getArena().replaceAgent(this);
+        game.getArena().replaceParticle(this);
     }
     public void adjustOrientation(){
         double diff = (targetOrientation - orientation+2*Math.PI)%(2*Math.PI);
@@ -117,6 +117,7 @@ public class Agent extends Particle {
     public void setOrderY(double orderY) {
         this.orderY = orderY;
     }
+    @Override
     public Position getPosition(){
         return position;
     }

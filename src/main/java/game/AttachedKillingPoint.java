@@ -29,12 +29,9 @@ public class AttachedKillingPoint extends KillingPoint {
     public double getPosY(){
         return 0.5*(agent1.getPosY()+agent2.getPosY());
     }
-    public Position getPosition(){
-        return new Position(getPosX(), getPosY());
-    }
     @Override
     public void draw(GraphicsContext graphicsContext, Game game) {
-        graphicsContext.setStroke(game.getTeamColor(team));
+        graphicsContext.setStroke(Environment.getTeamColor(team));
         graphicsContext.setLineWidth(0.8);
         double posX1 = game.getScreenPosX(agent1.getGraphicalPosition().getX());
         double posY1 = game.getScreenPosY(agent1.getGraphicalPosition().getY());

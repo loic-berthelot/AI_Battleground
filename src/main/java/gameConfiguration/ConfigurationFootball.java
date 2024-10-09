@@ -5,8 +5,8 @@ import game.*;
 
 import java.util.Vector;
 
-public class ConfigurationCrossTheMap extends GameConfiguration {
-    public ConfigurationCrossTheMap(Game game){
+public class ConfigurationFootball extends GameConfiguration {
+    public ConfigurationFootball(Game game){
         super(game);
     }
 
@@ -18,11 +18,15 @@ public class ConfigurationCrossTheMap extends GameConfiguration {
         Vector<AreaOfEffect> aoes = new Vector<>();
         final double halfWidth = 0.03;
         for (int i = 0; i <= 1; i++) {
-            aoes.add(new AreaOfEffect(new Position((halfWidth-1)*(i*2-1), 0), halfWidth, 1, i, Environment.getTeamColor(i).deriveColor(0, 1, 1, 0.5)));//
+            aoes.add(new AreaOfEffect(new Position((1-halfWidth)*(i*2-1), 0), halfWidth,0.2 , i, Environment.getTeamColor(i).deriveColor(0, 1, 1, 0.5)));//
         }
         game.setAoes(aoes);
         buildAgents();
         buildAttachedKillingPoints();
+        Vector<Ball> balls = new Vector<>();
+        balls.add(new Ball());
+        game.setBalls(balls);
+        game.setFrameLimit(5000);
     }
 
     @Override
@@ -34,6 +38,10 @@ public class ConfigurationCrossTheMap extends GameConfiguration {
                 agentIndex++;
             }
         }
+        orientAgentsTowardsCenter();
+        for (Ball ball : game.getBalls()) {
+            ball.getPosition().setCoordinates(0,0);
+        }
     }
     @Override
     public void checkEndRound() {
@@ -41,11 +49,10 @@ public class ConfigurationCrossTheMap extends GameConfiguration {
         final int agentsNumber = game.getAgentsNumber();
         int[] scoreIncrease = new int[teamsNumber];
         Vector<AreaOfEffect> aoes = game.getAoes();
-        for (Agent agent : game.getAgents()) {
-            scoreIncrease[agent.getTeam()] += agent.getKillCount();
+        for (Ball ball : game.getBalls()) {
             for (AreaOfEffect aoe : aoes) {
-                if (aoe.getTeam() == agent.getTeam() && aoe.containsPart(agent)) {
-                    scoreIncrease[agent.getTeam()] += 1;
+                if (aoe.containsPart(ball)) {
+                    scoreIncrease[1-aoe.getTeam()] += 1;
                 }
             }
         }

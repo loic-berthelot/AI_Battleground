@@ -2,10 +2,7 @@ package game;
 
 import arena.Arena;
 import controller.InputBuffer;
-import gameConfiguration.ConfigurationCrossTheMap;
-import gameConfiguration.ConfigurationKillTheKing;
-import gameConfiguration.ConfigurationSimple2vs2;
-import gameConfiguration.GameConfiguration;
+import gameConfiguration.*;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
@@ -19,7 +16,6 @@ public class Game {
     private Vector<KillingPoint> killingPoints;
     private Vector<Light> lights;
     private Vector<AreaOfEffect> aoes;
-    final private static Vector<Color> teamColors;
     private Vector<Integer> scores;
     private int teamsNumber;
     private int teamSize;
@@ -40,19 +36,9 @@ public class Game {
     private static int currentAgentId;
     private boolean[] lastWinners;
     private GameConfiguration gameConfiguration;
-    static {
-        teamColors = new Vector<>();
-        teamColors.add(Color.BLUE);
-        teamColors.add(Color.RED);
-        teamColors.add(Color.GREEN);
-        teamColors.add(Color.YELLOW.deriveColor(0,1,0.9,1));
-        teamColors.add(Color.OLIVE);
-        teamColors.add(Color.PURPLE);
-        teamColors.add(Color.AQUAMARINE);
-        teamColors.add(Color.ORANGE);
-    }
+    private Vector<Ball> balls;
     public Game() {
-        gameConfiguration = new ConfigurationCrossTheMap(this);
+        gameConfiguration = new ConfigurationFootball(this);
         initGame();
         turboMode = false;
         turboInputBuffer = new InputBuffer("Turbo");
@@ -75,6 +61,7 @@ public class Game {
         gameHistory = new GameHistory(this, 100, 300);
         aoes = new Vector<>();
         killingPoints = new Vector<>();
+        balls = new Vector<>();
         gameConfiguration.initGame();
         giveStrategies();
         initRound();
@@ -89,12 +76,13 @@ public class Game {
         for (int i = 0; i < teamsNumber; i++) {
             for (int j = 0; j < teamSize; j++) {
                 a = agents.get(agentIndex);
-                if (i == -1) {
-                    //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
-                    //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                    a.setStrategy(new NNStrategy1out(this, a));
+                if (i == 0) {
+                    if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
+                    else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
+                    //a.setStrategy(new NNStrategy1out(this, a));
                 } else {
-                    a.setStrategy(new RuleBasedStrategy(this, a, 0));
+                    //a.setStrategy(new RuleBasedStrategy(this, a, 0));
+                    a.setStrategy(new NullStrategy());
                 }
                 agentIndex++;
             }
@@ -135,7 +123,7 @@ public class Game {
         for (KillingPoint kp : killingPoints) kp.evolve(this);
         if (frameCount%10==0) {
             for (Agent agent : agents) {
-                if (agent.isAlive()) lights.add(new Light(new Position(agent.getPosition()), getTeamColor(agent.getTeam()), Agent.getAgentRadius()));
+                if (agent.isAlive()) lights.add(new Light(new Position(agent.getPosition()), Environment.getTeamColor(agent.getTeam()), Agent.getAgentRadius()));
             }
         }
         synchronized (lights) {
@@ -165,29 +153,38 @@ public class Game {
         double dy = p2.getY() - p1.getY();
         return Math.sqrt(dx*dx+dy*dy);
     }
+    public Vector<Particle> getSolidParticles(){
+        Vector<Particle> particles = new Vector<>();
+        for (Agent a : agents) {
+            if (a.isAlive()) particles.add(a);
+        }
+        particles.addAll(balls);
+        return particles;
+    }
     public void manageCollisions(){
         double dist, angle;
-        Agent a1;
+        Particle p1;
         int iterations = 3;
+        Vector<Particle> solidParticles = getSolidParticles();
         for (int j = 0; j < iterations; j++) {
-            double[] shifts = new double[2*agents.size()];
-            for (int i = 0; i < agents.size(); i++) {
-                a1 = agents.get(i);
-                for (Agent a2 : agents) {
-                    if (a1 != a2 && a1.isAlive() && a2.isAlive()) {
-                        dist = Math.max(Agent.getAgentRadius() - 0.5 * distance(a1.getPosition(), a2.getPosition()), 0);
-                        angle = Math.atan2(a1.getPosY() - a2.getPosY(), a1.getPosX() - a2.getPosX());
+            double[] shifts = new double[2*solidParticles.size()];
+            for (int i = 0; i < solidParticles.size(); i++) {
+                p1 = solidParticles.get(i);
+                for (final Particle p2 : solidParticles) {
+                    if (p1 != p2) {
+                        dist = p2.getMass()/(p1.getMass()+p2.getMass())*Math.max(p1.getRadius()+p2.getRadius() - distance(p1.getPosition(), p2.getPosition()), 0);
+                        angle = Math.atan2(p1.getPosY() - p2.getPosY(), p1.getPosX() - p2.getPosX());
                         shifts[2 * i] += dist * Math.cos(angle);
                         shifts[2 * i + 1] += dist * Math.sin(angle);
                     }
                 }
             }
             Position pos;
-            for (int i = 0; i < agents.size(); i++) {
-                pos = agents.get(i).getPosition();
+            for (int i = 0; i < solidParticles.size(); i++) {
+                pos = solidParticles.get(i).getPosition();
                 pos.addX(shifts[2*i]);
                 pos.addY(shifts[2*i+1]);
-                arena.replaceAgent(agents.get(i));
+                arena.replaceParticle(solidParticles.get(i));
             }
         }
     }
@@ -227,9 +224,6 @@ public class Game {
     }
     public int getCenterArenaY(){
         return getArenaRadius()+10;
-    }
-    public static Color getTeamColor(int team){
-        return teamColors.get(team);
     }
     public int getTeamsNumber(){
         return teamsNumber;
@@ -326,5 +320,14 @@ public class Game {
                 if (kp instanceof AttachedKillingPoint) iter.remove();
             }
         }
+    }
+    public void setBalls(Vector<Ball> balls) {
+        this.balls = balls;
+    }
+    public Vector<Ball> getBalls(){
+        return balls;
+    }
+    public void setFrameLimit(int frameLimit) {
+        this.frameLimit = frameLimit;
     }
 }

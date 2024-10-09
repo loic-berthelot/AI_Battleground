@@ -1,7 +1,7 @@
 package arena;
 
-import game.Agent;
 import game.Game;
+import game.Particle;
 import game.Position;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -37,9 +37,9 @@ public class TorusArena extends Arena{
             graphicsContext.strokeLine(game.getScreenPosX(internalRadius*Math.cos(pos)), game.getScreenPosY(internalRadius*Math.sin(pos)), game.getScreenPosX(Math.cos(pos)), game.getScreenPosY(Math.sin(pos)));
         }
     }
-    public void replaceAgent(Agent agent){
-        Position position = agent.getPosition();
-        double agentRadius = agent.getRadius();
+    public void replaceParticle(Particle particle){
+        Position position = particle.getPosition();
+        double agentRadius = particle.getRadius();
         double dist = position.distanceToCenter();
         if (dist > 1-agentRadius) {
             position.multiply((1-agentRadius)/dist);

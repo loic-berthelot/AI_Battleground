@@ -29,7 +29,7 @@ public class GameCanvas extends Canvas {
         graphicsContext.setFill(game.getBackgroundColor());
         graphicsContext.fillRect(0, 0, width, height);
     }
-    public void display() {
+    public void displayArena(){
         Vector<Agent> agents = game.getAgents();
         Vector<KillingPoint> killingPoints = game.getKillingPoints();
         Vector<Light> lights = game.getLights();
@@ -40,16 +40,22 @@ public class GameCanvas extends Canvas {
             aoe.draw(graphicsContext, game);
         }
         synchronized(lights) {
-            for (Light light : lights) {
+            for (final Light light : lights) {
                 light.draw(graphicsContext, game);
             }
         }
-        for (int i = 0; i < killingPoints.size(); i++) {
-            killingPoints.get(i).draw(graphicsContext, game);
+        for (final KillingPoint killingPoint : killingPoints) {
+            killingPoint.draw(graphicsContext, game);
         }
-        for (int i = 0; i < agents.size(); i++) {
-            agents.get(i).draw(graphicsContext, game);
+        for (final Agent agent : agents) {
+            agent.draw(graphicsContext, game);
         }
+        for (final Ball ball : game.getBalls()) {
+            ball.draw(graphicsContext, game);
+        }
+    }
+
+    public void displayInterface(){
         Font font = Font.font("Arial", FontWeight.BOLD, FontPosture.REGULAR, 25);
         graphicsContext.setFont(font);
         graphicsContext.setFill(Color.BLACK);
@@ -85,9 +91,14 @@ public class GameCanvas extends Canvas {
                 graphicsContext.setFill(new Color(1, 1, 1, 0.8));
                 graphicsContext.fillOval(cornerX + shiftX - margin, cornerY + shiftY - margin, text.getLayoutBounds().getWidth() + 2 * margin, text.getLayoutBounds().getHeight() + 2 * margin);
             }
-            graphicsContext.setFill(Game.getTeamColor(i));
+            graphicsContext.setFill(Environment.getTeamColor(i));
             graphicsContext.fillText(Integer.toString(game.getScore(i)), cornerX+shiftX, cornerY+40 + shiftY);
         }
         game.getGameHistory().draw(graphicsContext);
+    }
+
+    public void display() {
+        displayArena();
+        displayInterface();
     }
 }

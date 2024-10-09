@@ -64,7 +64,7 @@ public class GameHistory {
             for (int j = 0; j < ratiosSize; j++) {
                 totalHeight = 0;
                 for (int i = teamsNumber-1; i >= 0; i--) {
-                    graphicsContext.setFill(Game.getTeamColor(i));
+                    graphicsContext.setFill(Environment.getTeamColor(i));
                     graphicsContext.fillRect(cornerX+(ratiosDepth-j-1)*width/((double) ratiosDepth), cornerY + totalHeight, 0+width / ((double) ratiosDepth), height*ratios.get(j)[i]);
                     totalHeight += height*ratios.get(j)[i];
                 }

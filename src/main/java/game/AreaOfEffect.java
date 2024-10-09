@@ -20,9 +20,9 @@ public class AreaOfEffect {
     private double distance(double x1, double y1, double x2, double y2) {
         return Math.sqrt((x2 - x1) * (x2-x1) + (y2 - y1) * (y2 - y1));
     }
-    public boolean containsPart(Agent agent) {
-        final double aX = agent.getPosX();
-        final double aY = agent.getPosY();
+    public boolean containsPart(Particle particle) {
+        final double aX = particle.getPosX();
+        final double aY = particle.getPosY();
         final double pX = position.getX();
         final double pY = position.getY();
         double testPosX = aX;
@@ -31,21 +31,21 @@ public class AreaOfEffect {
         else if (testPosX > pX + halfWidth) testPosX = pX + halfWidth;
         if (testPosY < pY - halfHeight) testPosY = pY - halfHeight;
         else if (testPosY > pY + halfHeight) testPosY = pY + halfHeight;
-        return distance(testPosX, testPosY, aX, aY) < agent.getRadius();
+        return distance(testPosX, testPosY, aX, aY) < particle.getRadius();
     }
-    public boolean containsCenter(Agent agent) {
-        final double aX = agent.getPosX();
-        final double aY = agent.getPosY();
+    public boolean containsCenter(Particle particle) {
+        final double aX = particle.getPosX();
+        final double aY = particle.getPosY();
         final double pX = position.getX();
         final double pY = position.getY();
         return aX <= pX + halfWidth && aX >= pX - halfWidth && aY <= pY + halfHeight && aY >= pY - halfHeight;
     }
-    public boolean containsAll(Agent agent) {
-        final double aX = agent.getPosX();
-        final double aY = agent.getPosY();
+    public boolean containsAll(Particle particle) {
+        final double aX = particle.getPosX();
+        final double aY = particle.getPosY();
         final double pX = position.getX();
         final double pY = position.getY();
-        final double radius = agent.getRadius();
+        final double radius = particle.getRadius();
         return aX + radius <= pX + halfWidth && aX - radius >= pX - halfWidth && aY + radius <= pY + halfHeight && aY -radius >= pY - halfHeight;
     }
     public void draw(GraphicsContext graphicsContext, Game game){
