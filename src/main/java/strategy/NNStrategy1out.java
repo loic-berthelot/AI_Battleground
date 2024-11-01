@@ -12,7 +12,7 @@ public class NNStrategy1out extends NNStrategy {
         super(game, controlledAgent);
         this.controlledAgent = controlledAgent;
         numOutputs = 1;
-        numInputs = (game.getAgentsNumber()+game.getKillingPointsNumber())+5;
+        //numInputs = (game.getAgentsNumber()+game.getKillingPointsNumber())+5;
         scoreMethod = 0;
         intermediateLearn = false;
         Random random = new Random();
@@ -22,8 +22,8 @@ public class NNStrategy1out extends NNStrategy {
 
         epsilon = 0.8;
         epsilonMultiplier = 0.95;
-        learningRate = 0.0002;
-        learningRateMultiplier = 1;
+        learningRate = 0.005;
+        learningRateMultiplier = 0.99;
         rewardIntensity = 1;
         punishmentIntensity = 0;
         learningHistoryDepth = 10;
@@ -77,8 +77,8 @@ public class NNStrategy1out extends NNStrategy {
         }
     }
 
-    @Override
-    public double[] calculateState(){
+//    @Override
+    public double[] calculateState2(){
         double[] state = new double[numInputs];
         Vector<Agent> agents = game.getAgents();
         Vector<KillingPoint> killingPoints = game.getKillingPoints();

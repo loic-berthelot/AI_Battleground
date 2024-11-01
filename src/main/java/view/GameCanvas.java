@@ -44,8 +44,10 @@ public class GameCanvas extends Canvas {
                 light.draw(graphicsContext, game);
             }
         }
-        for (final KillingPoint killingPoint : killingPoints) {
-            killingPoint.draw(graphicsContext, game);
+        synchronized(killingPoints) {
+            for (final KillingPoint killingPoint : killingPoints) {
+                killingPoint.draw(graphicsContext, game);
+            }
         }
         for (final Agent agent : agents) {
             agent.draw(graphicsContext, game);

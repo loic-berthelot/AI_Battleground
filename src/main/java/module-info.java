@@ -7,6 +7,7 @@ module org.example.ai_battleground {
     requires fastutil;
     requires java.desktop;
     requires oswego.concurrent;
+    requires nearestneighbor.core;
 
     // Export the controller package to javafx.graphics
     exports controller to javafx.graphics;

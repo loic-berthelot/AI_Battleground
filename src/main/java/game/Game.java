@@ -38,7 +38,7 @@ public class Game {
     private GameConfiguration gameConfiguration;
     private Vector<Ball> balls;
     public Game() {
-        gameConfiguration = new ConfigurationFootball(this);
+        gameConfiguration = new ConfigurationSimple2vs2(this);
         initGame();
         turboMode = false;
         turboInputBuffer = new InputBuffer("Turbo");
@@ -63,8 +63,8 @@ public class Game {
         killingPoints = new Vector<>();
         balls = new Vector<>();
         gameConfiguration.initGame();
-        giveStrategies();
         initRound();
+        giveStrategies();
         for (int i = 0; i < teamsNumber; i++) {
             scores.add(0);
         }
@@ -77,12 +77,12 @@ public class Game {
             for (int j = 0; j < teamSize; j++) {
                 a = agents.get(agentIndex);
                 if (i == 0) {
-                    if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
-                    else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                    //a.setStrategy(new NNStrategy1out(this, a));
+                    //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
+                    //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
+                    a.setStrategy(new NNStrategy2out(this, a));
                 } else {
-                    //a.setStrategy(new RuleBasedStrategy(this, a, 0));
-                    a.setStrategy(new NullStrategy());
+                    a.setStrategy(new RuleBasedStrategy(this, a, 0));
+                    //a.setStrategy(new NullStrategy());
                 }
                 agentIndex++;
             }
@@ -104,7 +104,9 @@ public class Game {
         }
         for (Agent a : agents) {
             if(a.getStrategy().isHuman()) a.decide();
-            else if (frameCount%decisionDelta==0) a.decide();
+            else if (frameCount%decisionDelta==0) {
+                a.decide();
+            }
         }
         if (frameCount%500==0){
             Agent agent;

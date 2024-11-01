@@ -15,8 +15,8 @@ public class RuleBasedStrategy extends Strategy{
         super(game);
         this.controlledAgent = controlledAgent;
         this.heuristic = heuristic;
-        epsilon = 0;
-        epsilonCoefficient = 0.9;
+        epsilon = 0.5;
+        epsilonCoefficient = 0.997;
     }
     public double heuristicResult(Agent agent) {
         switch(heuristic) {

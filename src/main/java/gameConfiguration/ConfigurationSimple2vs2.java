@@ -17,11 +17,11 @@ public class ConfigurationSimple2vs2 extends GameConfiguration{
     @Override
     public void initGame() {
         buildAgents();
-        buildAttachedKillingPoints();
     }
 
     @Override
     public void initRound() {
+        buildAttachedKillingPoints();
         Random random = new Random();
         switch (random.nextInt(1)) {
             case 0:
@@ -48,6 +48,7 @@ public class ConfigurationSimple2vs2 extends GameConfiguration{
                 agentIndex++;
             }
         }
+        orientAgentsTowardsCenter();
     }
     @Override
     public void checkEndRound() {
