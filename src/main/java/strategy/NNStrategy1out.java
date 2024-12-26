@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.Vector;
 
 import game.Game;
+import strategy.neuralNetwork.MLP;
 
 public class NNStrategy1out extends NNStrategy {
     private int scoreMethod;
@@ -24,10 +25,8 @@ public class NNStrategy1out extends NNStrategy {
         epsilonMultiplier = 0.95;
         learningRate = 0.005;
         learningRateMultiplier = 0.99;
-        rewardIntensity = 1;
-        punishmentIntensity = 0;
         learningHistoryDepth = 10;
-        neuralNetwork = new NNdl4j(learningRate,random.nextInt(10000), numInputs, numOutputs);
+        neuralNetwork = new MLP(learningRate,random.nextInt(10000), numInputs, numOutputs);
     }
     private double calculateScore(){
         if (scoreMethod == 0) {
@@ -58,7 +57,7 @@ public class NNStrategy1out extends NNStrategy {
         int size = states.size();
         double[] statesFeatures = calculateFeatures();
         double[] rewards = new double[size];
-        double reward = victory ? rewardIntensity : punishmentIntensity;
+        double reward = victory ? getMaxOutInterval() : getMinOutInterval();
         for (int i = 0; i < size; i++) {
             rewards[i] = reward;
             reward = gamma*(reward-0.5)+0.5;

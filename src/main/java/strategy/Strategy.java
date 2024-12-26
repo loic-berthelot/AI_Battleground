@@ -2,21 +2,35 @@ package strategy;
 
 import game.*;
 
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
 
 public abstract class Strategy {
     protected int orderX;
     protected int orderY;
+    protected ArrayList<LearningBatch> learningHistory;
+    protected int learningHistoryDepth;
+    protected double learningRate;
+    protected double learningRateMultiplier;
+    protected Vector<double[]> states;
+    protected int numInputs;
+    protected int numOutputs;
+    protected double epsilon;
+    protected double epsilonMultiplier;
+    protected double gamma;
     Game game;
     public Strategy(Game game){
         this.game = game;
+        states = new Vector<double[]>();
+        learningHistory = new ArrayList<>();
+        learningHistoryDepth = 100;
     }
     public abstract void decide(Agent agent);
-    public double getRewardIntensity() {
+    public double getMaxOutInterval() {
         return 1;
     }
-    public double getPunishmentIntensity() {
+    public double getMinOutInterval() {
         return 0;
     }
     public void learn(boolean victory, int epochsNumber){
@@ -108,5 +122,20 @@ public abstract class Strategy {
     }
     public void discardStates(){
 
+    }
+
+
+    public double[] calculateFeatures(){
+        int indexFeatures = 0;
+        double[] state;
+        double[] features = new double[states.size() * numInputs];
+        for (int i = 0; i < states.size(); i++) {
+            state = states.get(i);
+            for (int j = 0; j < numInputs; j++) {
+                features[indexFeatures] = state[j];
+                indexFeatures++;
+            }
+        }
+        return features;
     }
 }

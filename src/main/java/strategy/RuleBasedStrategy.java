@@ -55,9 +55,9 @@ public class RuleBasedStrategy extends Strategy{
     }
     @Override
     public void learn(boolean victory, int nEpochs){
-        //epsilon *= epsilonCoefficient;
+        epsilon *= epsilonCoefficient;
         //if (epsilon < 0.02) epsilon = 0.8;
         double winProportion = game.getGameHistory().getWinProportion(controlledAgent.getTeam());
-        epsilon = 0.5*winProportion*winProportion;
+        //epsilon = 0.3*winProportion*winProportion;
     }
 }

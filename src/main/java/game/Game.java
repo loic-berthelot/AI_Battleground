@@ -38,7 +38,8 @@ public class Game {
     private GameConfiguration gameConfiguration;
     private Vector<Ball> balls;
     public Game() {
-        gameConfiguration = new ConfigurationSimple2vs2(this);
+        //gameConfiguration = new ConfigurationFootball(this);
+        gameConfiguration = new ConfigurationSimple2vs2(this);//madpg
         initGame();
         turboMode = false;
         turboInputBuffer = new InputBuffer("Turbo");
@@ -52,7 +53,7 @@ public class Game {
         teamsNumber = 2;
         teamSize = 2;
         speed = 0.005;
-        decisionDelta = 10;
+        decisionDelta = 40;
         recordingDelta = 20;
         Agent.setAgentRadius(0.08);
         Agent.setSpeed(speed);
@@ -77,12 +78,13 @@ public class Game {
             for (int j = 0; j < teamSize; j++) {
                 a = agents.get(agentIndex);
                 if (i == 0) {
-                    //if (j == 0) a.setStrategy(new KeyboardStrategy1(this));
-                    //else if (j == 1) a.setStrategy(new KeyboardStrategy2(this));
-                    a.setStrategy(new NNStrategy2out(this, a));
+                    //if (j >= 0)
+                    //else if (j == 1)
+                    //a.setStrategy(new NNStrategy9out(this, a));
+                    a.setStrategy(new NNStrategy1out(this, a));
                 } else {
                     a.setStrategy(new RuleBasedStrategy(this, a, 0));
-                    //a.setStrategy(new NullStrategy());
+                    //a.setStrategy(new RandomStrategy(this, 0.2));
                 }
                 agentIndex++;
             }

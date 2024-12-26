@@ -3,42 +3,37 @@ package strategy;
 import game.Agent;
 import game.Game;
 import game.Position;
+import strategy.neuralNetwork.MLP;
 
 import java.util.Random;
 import java.util.Vector;
-
-import static java.lang.Double.NaN;
-import static org.deeplearning4j.clustering.util.MathUtils.sigmoid;
 
 public class NNStrategy2out extends NNStrategy {
     final private Vector<double[]> choices;
     private int scoreMethod;
     private int recordingInterval;
     private double movementThreshold;
-    final double movementIntensification;
-    final int variation;
+    private final int variation;
     private double targetX;
     private double targetY;
     public NNStrategy2out(Game game, Agent controlledAgent) {
         super(game, controlledAgent);
         numOutputs = 2;
         epsilon = 0.8;
-        epsilonMultiplier = 0.997;
-        gamma = 0.9;
-        maxHistoryDepth = 15;
+        epsilonMultiplier = 0.99;
+        gamma = 0.97;
+        maxHistoryDepth = 3;
         learningRate = 0.001;
         learningRateMultiplier = 1;
-        rewardIntensity = 1;
-        punishmentIntensity = 0;
         recordingInterval = 25;
         intermediateLearn = false;
-        movementThreshold = 0.1;
-        movementIntensification = 5.0;
+        movementThreshold = 0.01;
         choices = new Vector<double[]>();
         scoreMethod = 0;
-        variation = 2;
+        variation = 1;
+        learningHistoryDepth = 40;
         Random random = new Random();
-        neuralNetwork = new NNdl4j(learningRate, random.nextInt(10000), numInputs, numOutputs);
+        neuralNetwork = new MLP(learningRate, random.nextInt(10000), numInputs, numOutputs);
     }
 
     @Override
@@ -52,9 +47,9 @@ public class NNStrategy2out extends NNStrategy {
         Random random = new Random();
         if (random.nextFloat() < epsilon) {
             scoreMethod = 1;
-            //agent.setOrderX(random.nextInt(3)-1);
-            //agent.setOrderY(random.nextInt(3)-1);
-            goToBestPosition(agent);
+            agent.setOrderX(random.nextInt(3)-1);
+            agent.setOrderY(random.nextInt(3)-1);
+            //goToBestPosition(agent);
         } else {
             scoreMethod = 0;
             double[] outputs = neuralNetwork.predict(calculateState());
@@ -62,7 +57,6 @@ public class NNStrategy2out extends NNStrategy {
             double dy = neuralNetwork.outToArenaInterval(outputs[1]);
             targetX = dx;
             targetY = dy;
-            System.out.println(dx+", "+dy);
             if (variation == 1) {
                 if (dx > movementThreshold) agent.setOrderX(1);
                 else if (dx < -movementThreshold) agent.setOrderX(-1);
@@ -86,16 +80,20 @@ public class NNStrategy2out extends NNStrategy {
         int size = states.size();
         double[] statesFeatures = calculateFeatures();
         double[] rewards = new double[size * 2];
-        double multiplier = victory ? 1 : -1;
+        double multiplier = victory ? getMaxOutInterval() : getMinOutInterval();
         for (int i = 0; i < size; i++) {
             double[] choice = choices.get(i);
-            rewards[2 * i] = neuralNetwork.arenaToOutInterval(multiplier * (choice[0]-choice[2])+choice[2]);
-            rewards[2 * i + 1] = neuralNetwork.arenaToOutInterval(multiplier * (choice[1]-choice[3])+choice[3]);
-
+            if (variation == 1) {
+                rewards[2 * i] = neuralNetwork.arenaToOutInterval(multiplier * choice[0]);
+                rewards[2 * i + 1] = neuralNetwork.arenaToOutInterval(multiplier * choice[1]);
+            } else if (variation == 2) {
+                rewards[2 * i] = neuralNetwork.arenaToOutInterval(multiplier * (choice[0] - choice[2]) + choice[2]);
+                rewards[2 * i + 1] = neuralNetwork.arenaToOutInterval(multiplier * (choice[1] - choice[3]) + choice[3]);
+            }
             multiplier *= gamma;
         }
         learningHistory.add(new LearningBatch(statesFeatures, rewards, size, epochsNumber));
-        if (learningHistory.size() > learningHistoryDepth) {
+        if (learningHistory.size() >= learningHistoryDepth) {
             for(LearningBatch batch : learningHistory){
                 neuralNetwork.fit(batch);
             }

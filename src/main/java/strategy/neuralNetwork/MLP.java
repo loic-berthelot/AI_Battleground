@@ -1,5 +1,6 @@
-package strategy;
+package strategy.neuralNetwork;
 
+import org.deeplearning4j.nn.api.NeuralNetwork;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
@@ -11,40 +12,34 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
+import strategy.LearningBatch;
 
-import static java.lang.Double.NaN;
-
-public class NNdl4j {
-    private final MultiLayerNetwork network;
-    private final int numInputs;
-    private final int numOutputs;
-    private double learningRate;
+public class MLP extends NN{
     final private double minOutInterval;
     final private double maxOutInterval;
     final private int strechIntensity;
     final private int strechMode;
-    public NNdl4j(double learningRate, int seed, int numInputs, int numOutputs){
+    public MLP(double learningRate, int seed, int numInputs, int numOutputs){
         this.numInputs = numInputs;
         this.numOutputs = numOutputs;
-        this.learningRate = learningRate;
-        int numHidden = 8;
+        int numHidden = 32;
         minOutInterval = 0;
         maxOutInterval = 1;
-        strechIntensity = 1500;
+        strechIntensity = 10;
         strechMode = 1;
-        network = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
+        model = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .weightInit(WeightInit.XAVIER)
                 .updater(new Adam(learningRate))
                 .list()
                 .layer(0, new DenseLayer.Builder().nIn(numInputs).nOut(numHidden)
                         .activation(Activation.SIGMOID)
-                        .dropOut(0.3)
+                        .dropOut(0.5)
                         .l2(1e-4)
                         .build())
                 .layer(1, new DenseLayer.Builder().nIn(numHidden).nOut(numHidden)
                         .activation(Activation.SIGMOID)
-                        .dropOut(0.3)
+                        .dropOut(0.5)
                         .l2(1e-4)
                         .build())
                 .layer(2, new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
@@ -52,7 +47,7 @@ public class NNdl4j {
                         .nIn(numHidden).nOut(numOutputs).build())
                 .build()
         );
-        network.init();
+        model.init();
     }
     public void fit(LearningBatch learningBatch)
     {
@@ -60,18 +55,14 @@ public class NNdl4j {
         INDArray indoutputs = Nd4j.create(learningBatch.getRewards(), new int[]{learningBatch.getSize(), numOutputs});
         DataSet dataset = new DataSet(indinputs, indoutputs);
         for(int i = 0; i<learningBatch.getEpochsNumber(); i++ ){
-            network.fit(dataset);
+            model.fit(dataset);
         }
         //System.out.println("poids : "+network.getLayer(1).getParam("W").getDouble(0));
     }
     public double[] predict(double[] features){
         INDArray input = Nd4j.create(features, new int[]{1,numInputs});
-        INDArray out = network.output(input);
+        INDArray out = model.output(input);
         return out.toDoubleVector();
-    }
-    public void setLearningRate(double learningRate) {
-        this.learningRate = learningRate;
-        network.setLearningRate(learningRate);
     }
 
     //y = 2*atan(power*x)/pi => x = tan(y*pi/2)/power
@@ -106,5 +97,12 @@ public class NNdl4j {
         value = stretch(value, false);
         value = (value+1)*(maxOutInterval-minOutInterval)/2 + minOutInterval;
         return value;
+    }
+    public double getMinOutInterval(){
+        return minOutInterval;
+    }
+
+    public double getMaxOutInterval() {
+        return maxOutInterval;
     }
 }

@@ -73,8 +73,8 @@ public class ConfigurationSimple2vs2 extends GameConfiguration{
             for (int i = 0; i < agentsNumber; i++) {
                 if (scoreIncrease[game.getAgent(i).getTeam()] > 0) {
                     game.getAgent(i).getStrategy().learn(true, 10);
-                } else {
-                    game.getAgent(i).getStrategy().learn(false, 10);
+                } else if (scoreIncrease[1-game.getAgent(i).getTeam()] > 0) {
+                    game.getAgent(i).getStrategy().learn(false, 5);
                 }
             }
             for (int i = 0; i < teamsNumber; i++) {
